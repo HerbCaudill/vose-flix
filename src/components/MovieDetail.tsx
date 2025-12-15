@@ -1,10 +1,10 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Movie, Showtime } from "@/types"
 import { format, parseISO, isToday, isTomorrow } from "date-fns"
-import { ArrowLeft, ExternalLink, Clock, MapPin, Calendar } from "lucide-react"
+import { ArrowLeft, ExternalLink, Clock, MapPin, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface MovieDetailProps {
   movie: Movie
@@ -13,21 +13,26 @@ interface MovieDetailProps {
 
 export function MovieDetail({ movie, onBack }: MovieDetailProps) {
   const { ratings } = movie
-  const [showFutureDates, setShowFutureDates] = useState(false)
 
-  // Filter showtimes: today only by default, or today + future if toggled
+  // Get all available dates sorted
   const today = new Date().toISOString().split("T")[0]
-  const filteredShowtimes = showFutureDates
-    ? movie.showtimes.filter(s => s.date >= today)
-    : movie.showtimes.filter(s => s.date === today)
+  const availableDates = useMemo(() => {
+    const dates = [...new Set(movie.showtimes.filter(s => s.date >= today).map(s => s.date))]
+    return dates.sort()
+  }, [movie.showtimes, today])
 
-  // Group showtimes by date, then by cinema
-  const showtimesByDate = groupShowtimesByDate(filteredShowtimes)
+  // Track selected date index (0 = first available date, which should be today if available)
+  const [selectedDateIndex, setSelectedDateIndex] = useState(0)
+  const selectedDate = availableDates[selectedDateIndex] || today
 
-  // Count future dates available
-  const futureDatesCount = new Set(
-    movie.showtimes.filter(s => s.date > today).map(s => s.date)
-  ).size
+  // Filter showtimes for selected date
+  const filteredShowtimes = movie.showtimes.filter(s => s.date === selectedDate)
+
+  // Group showtimes by cinema
+  const showtimesByCinema = groupShowtimesByCinema(filteredShowtimes)
+
+  const canGoPrev = selectedDateIndex > 0
+  const canGoNext = selectedDateIndex < availableDates.length - 1
 
   return (
     <div className="min-h-screen bg-background">
@@ -117,55 +122,60 @@ export function MovieDetail({ movie, onBack }: MovieDetailProps) {
         {/* Showtimes */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">Showtimes</h2>
-          {futureDatesCount > 0 && (
-            <Button
-              variant={showFutureDates ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowFutureDates(!showFutureDates)}
-              className="gap-2"
-            >
-              <Calendar className="h-4 w-4" />
-              {showFutureDates ? "Today only" : `+${futureDatesCount} more days`}
-            </Button>
+          {availableDates.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedDateIndex(i => i - 1)}
+                disabled={!canGoPrev}
+                className="h-8 w-8"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="min-w-[120px] text-center font-medium">
+                {formatDateLabel(selectedDate)}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSelectedDateIndex(i => i + 1)}
+                disabled={!canGoNext}
+                className="h-8 w-8"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </div>
-        {showtimesByDate.length === 0 ? (
-          <p className="text-muted-foreground">No showtimes available for today</p>
+        {showtimesByCinema.length === 0 ? (
+          <p className="text-muted-foreground">No showtimes available for {formatDateLabel(selectedDate).toLowerCase()}</p>
         ) : (
-          <div className="space-y-6">
-            {showtimesByDate.map(({ date, cinemas }) => (
-              <div key={date}>
-                <h3 className="text-lg font-semibold mb-3 sticky top-16 bg-background/95 py-2">
-                  {formatDateLabel(date)}
-                </h3>
-                <div className="grid gap-4">
-                  {cinemas.map(({ cinema, times }) => (
-                    <Card key={cinema.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">{cinema.name}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {times.map((showtime, i) => (
-                            <a
-                              key={i}
-                              href={showtime.bookingUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <Button variant="outline" size="sm" className="gap-1">
-                                {showtime.time}
-                                <ExternalLink className="h-3 w-3" />
-                              </Button>
-                            </a>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+          <div className="grid gap-4">
+            {showtimesByCinema.map(({ cinema, times }) => (
+              <Card key={cinema.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">{cinema.name}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {times.map((showtime, i) => (
+                      <a
+                        key={i}
+                        href={showtime.bookingUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button variant="outline" size="sm" className="gap-1">
+                          {showtime.time}
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
+                      </a>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
@@ -195,31 +205,21 @@ function RatingDisplay({ label, icon, value, subtext, color }: RatingDisplayProp
   )
 }
 
-function groupShowtimesByDate(showtimes: Showtime[]) {
-  const byDate = new Map<string, Map<string, Showtime[]>>()
+function groupShowtimesByCinema(showtimes: Showtime[]) {
+  const byCinema = new Map<string, Showtime[]>()
 
   for (const showtime of showtimes) {
-    if (!byDate.has(showtime.date)) {
-      byDate.set(showtime.date, new Map())
+    if (!byCinema.has(showtime.cinema.id)) {
+      byCinema.set(showtime.cinema.id, [])
     }
-    const dateCinemas = byDate.get(showtime.date)!
-    if (!dateCinemas.has(showtime.cinema.id)) {
-      dateCinemas.set(showtime.cinema.id, [])
-    }
-    dateCinemas.get(showtime.cinema.id)!.push(showtime)
+    byCinema.get(showtime.cinema.id)!.push(showtime)
   }
 
-  // Sort and structure
-  return Array.from(byDate.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, cinemas]) => ({
-      date,
-      cinemas: Array.from(cinemas.entries())
-        .sort(([, a], [, b]) => a[0].cinema.name.localeCompare(b[0].cinema.name))
-        .map(([_cinemaId, times]) => ({
-          cinema: times[0].cinema,
-          times: times.sort((a, b) => a.time.localeCompare(b.time)),
-        })),
+  return Array.from(byCinema.entries())
+    .sort(([, a], [, b]) => a[0].cinema.name.localeCompare(b[0].cinema.name))
+    .map(([, times]) => ({
+      cinema: times[0].cinema,
+      times: times.sort((a, b) => a.time.localeCompare(b.time)),
     }))
 }
 
@@ -227,7 +227,7 @@ function formatDateLabel(dateStr: string): string {
   const date = parseISO(dateStr)
   if (isToday(date)) return "Today"
   if (isTomorrow(date)) return "Tomorrow"
-  return format(date, "EEEE, MMMM d")
+  return format(date, "EEE, MMM d")
 }
 
 function formatDuration(minutes: number): string {
