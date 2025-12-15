@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,10 +8,12 @@ import { ArrowLeft, ExternalLink, Clock, MapPin, ChevronLeft, ChevronRight } fro
 
 interface MovieDetailProps {
   movie: Movie
+  selectedDate: string | null
+  onDateChange: (date: string) => void
   onBack: () => void
 }
 
-export function MovieDetail({ movie, onBack }: MovieDetailProps) {
+export function MovieDetail({ movie, selectedDate: selectedDateProp, onDateChange, onBack }: MovieDetailProps) {
   const { ratings } = movie
 
   // Get all available dates sorted
@@ -21,9 +23,12 @@ export function MovieDetail({ movie, onBack }: MovieDetailProps) {
     return dates.sort()
   }, [movie.showtimes, today])
 
-  // Track selected date index (0 = first available date, which should be today if available)
-  const [selectedDateIndex, setSelectedDateIndex] = useState(0)
-  const selectedDate = availableDates[selectedDateIndex] || today
+  // Use prop date if valid, otherwise default to first available date
+  const selectedDate = selectedDateProp && availableDates.includes(selectedDateProp)
+    ? selectedDateProp
+    : availableDates[0] || today
+
+  const selectedDateIndex = availableDates.indexOf(selectedDate)
 
   // Filter showtimes for selected date
   const filteredShowtimes = movie.showtimes.filter(s => s.date === selectedDate)
@@ -127,7 +132,7 @@ export function MovieDetail({ movie, onBack }: MovieDetailProps) {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setSelectedDateIndex(i => i - 1)}
+                onClick={() => onDateChange(availableDates[selectedDateIndex - 1])}
                 disabled={!canGoPrev}
                 className="h-8 w-8"
               >
@@ -139,7 +144,7 @@ export function MovieDetail({ movie, onBack }: MovieDetailProps) {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setSelectedDateIndex(i => i + 1)}
+                onClick={() => onDateChange(availableDates[selectedDateIndex + 1])}
                 disabled={!canGoNext}
                 className="h-8 w-8"
               >

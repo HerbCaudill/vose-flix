@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useMovies } from "@/hooks/useMovies"
 import { MovieGrid } from "@/components/MovieGrid"
 import { MovieDetail } from "@/components/MovieDetail"
@@ -6,12 +6,61 @@ import { Button } from "@/components/ui/button"
 import type { Movie } from "@/types"
 import { RefreshCw, Film } from "lucide-react"
 
+function getStateFromUrl(): { movieSlug: string | null; date: string | null } {
+  const params = new URLSearchParams(window.location.search)
+  return {
+    movieSlug: params.get("movie"),
+    date: params.get("date"),
+  }
+}
+
 export default function App() {
   const { movies, loading, error, refresh } = useMovies()
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null)
+  const [urlState, setUrlState] = useState(getStateFromUrl)
+
+  // Find movie by slug
+  const selectedMovie = urlState.movieSlug
+    ? movies.find(m => m.slug === urlState.movieSlug) || null
+    : null
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      setUrlState(getStateFromUrl())
+    }
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [])
+
+  const selectMovie = useCallback((movie: Movie | null) => {
+    if (movie) {
+      const today = new Date().toISOString().split("T")[0]
+      const params = new URLSearchParams({ movie: movie.slug, date: today })
+      window.history.pushState({}, "", `?${params}`)
+      setUrlState({ movieSlug: movie.slug, date: today })
+    } else {
+      window.history.pushState({}, "", window.location.pathname)
+      setUrlState({ movieSlug: null, date: null })
+    }
+  }, [])
+
+  const setSelectedDate = useCallback((date: string) => {
+    if (urlState.movieSlug) {
+      const params = new URLSearchParams({ movie: urlState.movieSlug, date })
+      window.history.pushState({}, "", `?${params}`)
+      setUrlState(prev => ({ ...prev, date }))
+    }
+  }, [urlState.movieSlug])
 
   if (selectedMovie) {
-    return <MovieDetail movie={selectedMovie} onBack={() => setSelectedMovie(null)} />
+    return (
+      <MovieDetail
+        movie={selectedMovie}
+        selectedDate={urlState.date}
+        onDateChange={setSelectedDate}
+        onBack={() => selectMovie(null)}
+      />
+    )
   }
 
   return (
@@ -50,7 +99,7 @@ export default function App() {
           </p>
         </div>
 
-        <MovieGrid movies={movies} loading={loading} onMovieClick={setSelectedMovie} />
+        <MovieGrid movies={movies} loading={loading} onMovieClick={selectMovie} />
       </main>
 
       {/* Footer */}
