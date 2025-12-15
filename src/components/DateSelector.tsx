@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
-import { format, parseISO, isToday, isTomorrow } from "date-fns"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { formatDateLabel } from "@/lib/formatDateLabel"
 
 interface DateSelectorProps {
   availableDates: string[]
@@ -42,11 +42,4 @@ export function DateSelector({ availableDates, selectedDate, onDateChange }: Dat
       </Button>
     </div>
   )
-}
-
-function formatDateLabel(dateStr: string): string {
-  const date = parseISO(dateStr)
-  if (isToday(date)) return "Today"
-  if (isTomorrow(date)) return "Tomorrow"
-  return format(date, "EEE, MMM d")
 }

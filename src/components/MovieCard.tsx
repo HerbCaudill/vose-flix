@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { RatingBadge } from "@/components/RatingBadge"
+import { formatDuration } from "@/lib/formatDuration"
 import type { Movie } from "@/types"
 
 interface MovieCardProps {
@@ -80,45 +81,4 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
       </CardContent>
     </Card>
   )
-}
-
-interface RatingBadgeProps {
-  type: "rt" | "mc" | "imdb"
-  value: number // normalized 0-100
-  label: string
-}
-
-function RatingBadge({ type, value, label }: RatingBadgeProps) {
-  const colors = {
-    rt: value >= 60 ? "bg-red-600" : "bg-green-600",
-    mc:
-      value >= 60 ? "bg-green-600"
-      : value >= 40 ? "bg-yellow-500"
-      : "bg-red-600",
-    imdb:
-      value >= 70 ? "bg-yellow-500"
-      : value >= 50 ? "bg-yellow-600"
-      : "bg-yellow-700",
-  }
-
-  const icons = {
-    rt: "🍅",
-    mc: "M",
-    imdb: "★",
-  }
-
-  return (
-    <Badge className={`${colors[type]} text-xs font-bold text-white shadow-md`}>
-      <span className="mr-1">{icons[type]}</span>
-      {label}
-    </Badge>
-  )
-}
-
-function formatDuration(minutes: number): string {
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  if (hours === 0) return `${mins}m`
-  if (mins === 0) return `${hours}h`
-  return `${hours}h ${mins}m`
 }

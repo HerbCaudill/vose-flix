@@ -1,73 +1,8 @@
 import { useState, useEffect, useCallback } from "react"
-import type { Movie, Ratings } from "@/types"
+import type { Movie } from "@/types"
 import { fetchMovieList, fetchMovieDetails, fetchOmdbData } from "@/lib/scraper"
-
-const MOVIES_CACHE_KEY = "movies-cache"
-const MOVIES_CACHE_TTL = 8 * 60 * 60 * 1000 // 8 hours
-
-interface MoviesCache {
-  movies: Movie[]
-  timestamp: number
-}
-
-function getCachedMovies(): Movie[] | null {
-  try {
-    const cached = localStorage.getItem(MOVIES_CACHE_KEY)
-    if (cached) {
-      const parsed = JSON.parse(cached) as MoviesCache
-      if (Date.now() - parsed.timestamp < MOVIES_CACHE_TTL) {
-        return parsed.movies
-      }
-    }
-  } catch {
-    // Ignore parse errors
-  }
-  return null
-}
-
-function setCachedMovies(movies: Movie[]): void {
-  try {
-    const cache: MoviesCache = { movies, timestamp: Date.now() }
-    localStorage.setItem(MOVIES_CACHE_KEY, JSON.stringify(cache))
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-// Calculate normalized score from 0-100 based on available ratings
-function calculateNormalizedScore(ratings: Ratings): number | null {
-  const scores: number[] = []
-
-  if (ratings.rottenTomatoes?.critics != null) {
-    scores.push(ratings.rottenTomatoes.critics) // Already 0-100
-  }
-  if (ratings.metacritic != null) {
-    scores.push(ratings.metacritic) // Already 0-100
-  }
-  if (ratings.imdb?.score != null) {
-    scores.push(ratings.imdb.score * 10) // Convert 0-10 to 0-100
-  }
-
-  if (scores.length === 0) return null
-  return scores.reduce((a, b) => a + b, 0) / scores.length
-}
-
-// Sort movies by year (descending) then by normalized score (descending)
-function sortMovies(movies: Movie[]): Movie[] {
-  return [...movies].sort((a, b) => {
-    // First sort by year (descending, with no-year movies at the end)
-    const yearA = a.year ?? 0
-    const yearB = b.year ?? 0
-    if (yearA !== yearB) {
-      return yearB - yearA
-    }
-
-    // Then sort by normalized score (descending, with no-score movies at the end)
-    const scoreA = calculateNormalizedScore(a.ratings) ?? -1
-    const scoreB = calculateNormalizedScore(b.ratings) ?? -1
-    return scoreB - scoreA
-  })
-}
+import { getCachedMovies, setCachedMovies } from "@/lib/moviesCache"
+import { sortMovies } from "@/lib/sortMovies"
 
 interface UseMoviesResult {
   movies: Movie[]

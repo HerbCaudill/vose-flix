@@ -2,9 +2,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { DateSelector } from "@/components/DateSelector"
-import type { Movie, Showtime } from "@/types"
-import { format, parseISO, isToday, isTomorrow } from "date-fns"
+import { RatingDisplay } from "@/components/RatingDisplay"
+import type { Movie } from "@/types"
 import { ArrowLeft, ExternalLink, Clock, MapPin } from "lucide-react"
+import { formatDateLabel } from "@/lib/formatDateLabel"
+import { formatDuration } from "@/lib/formatDuration"
+import { groupShowtimesByCinema } from "@/lib/groupShowtimesByCinema"
 
 interface MovieDetailProps {
   movie: Movie
@@ -156,58 +159,4 @@ export function MovieDetail({ movie, selectedDate, availableDates, onDateChange,
       </div>
     </div>
   )
-}
-
-interface RatingDisplayProps {
-  label: string
-  icon: string
-  value: string
-  subtext?: string
-  color: string
-}
-
-function RatingDisplay({ label, icon, value, subtext, color }: RatingDisplayProps) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className={`text-2xl ${color}`}>{icon}</span>
-      <div>
-        <div className="font-bold">{value}</div>
-        <div className="text-xs text-muted-foreground">{label}</div>
-        {subtext && <div className="text-xs text-muted-foreground">{subtext}</div>}
-      </div>
-    </div>
-  )
-}
-
-function groupShowtimesByCinema(showtimes: Showtime[]) {
-  const byCinema = new Map<string, Showtime[]>()
-
-  for (const showtime of showtimes) {
-    if (!byCinema.has(showtime.cinema.id)) {
-      byCinema.set(showtime.cinema.id, [])
-    }
-    byCinema.get(showtime.cinema.id)!.push(showtime)
-  }
-
-  return Array.from(byCinema.entries())
-    .sort(([, a], [, b]) => a[0].cinema.name.localeCompare(b[0].cinema.name))
-    .map(([, times]) => ({
-      cinema: times[0].cinema,
-      times: times.sort((a, b) => a.time.localeCompare(b.time)),
-    }))
-}
-
-function formatDateLabel(dateStr: string): string {
-  const date = parseISO(dateStr)
-  if (isToday(date)) return "Today"
-  if (isTomorrow(date)) return "Tomorrow"
-  return format(date, "EEE, MMM d")
-}
-
-function formatDuration(minutes: number): string {
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  if (hours === 0) return `${mins}m`
-  if (mins === 0) return `${hours}h`
-  return `${hours}h ${mins}m`
 }
