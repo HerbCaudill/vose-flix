@@ -5,6 +5,7 @@ export interface OmdbData {
   rottenTomatoes?: { critics: number }
   metacritic?: number
   posterUrl?: string
+  year?: number
 }
 
 export async function fetchOmdbData(title: string): Promise<OmdbData> {
@@ -48,6 +49,14 @@ export async function fetchOmdbData(title: string): Promise<OmdbData> {
 
       if (data.Poster && data.Poster !== "N/A") {
         result.posterUrl = data.Poster
+      }
+
+      if (data.Year && data.Year !== "N/A") {
+        // Year can be "2024" or "2024–" (for series), extract first year
+        const yearMatch = data.Year.match(/(\d{4})/)
+        if (yearMatch) {
+          result.year = parseInt(yearMatch[1], 10)
+        }
       }
     }
   } catch (error) {

@@ -58,6 +58,11 @@ export function MovieDetail({ movie, selectedDate, availableDates, onDateChange,
             <h1 className="text-3xl font-bold mb-2">{movie.title}</h1>
 
             <div className="flex flex-wrap gap-2 mb-4">
+              {movie.year && (
+                <Badge variant="secondary">
+                  {movie.year}
+                </Badge>
+              )}
               {movie.duration > 0 && (
                 <Badge variant="secondary" className="gap-1">
                   <Clock className="h-3 w-3" />

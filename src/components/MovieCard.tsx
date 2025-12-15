@@ -62,6 +62,8 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
       <CardContent className="p-3">
         <h3 className="line-clamp-2 leading-tight font-semibold">{movie.title}</h3>
         <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
+          {movie.year && <span>{movie.year}</span>}
+          {movie.year && movie.duration > 0 && <span>•</span>}
           {movie.duration > 0 && <span>{formatDuration(movie.duration)}</span>}
           {movie.genres.length > 0 && (
             <>
