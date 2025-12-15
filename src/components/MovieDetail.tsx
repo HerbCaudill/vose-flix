@@ -1,9 +1,10 @@
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Movie, Showtime } from "@/types"
 import { format, parseISO, isToday, isTomorrow } from "date-fns"
-import { ArrowLeft, ExternalLink, Clock, MapPin } from "lucide-react"
+import { ArrowLeft, ExternalLink, Clock, MapPin, Calendar } from "lucide-react"
 
 interface MovieDetailProps {
   movie: Movie
@@ -12,9 +13,21 @@ interface MovieDetailProps {
 
 export function MovieDetail({ movie, onBack }: MovieDetailProps) {
   const { ratings } = movie
+  const [showFutureDates, setShowFutureDates] = useState(false)
+
+  // Filter showtimes: today only by default, or today + future if toggled
+  const today = new Date().toISOString().split("T")[0]
+  const filteredShowtimes = showFutureDates
+    ? movie.showtimes.filter(s => s.date >= today)
+    : movie.showtimes.filter(s => s.date === today)
 
   // Group showtimes by date, then by cinema
-  const showtimesByDate = groupShowtimesByDate(movie.showtimes)
+  const showtimesByDate = groupShowtimesByDate(filteredShowtimes)
+
+  // Count future dates available
+  const futureDatesCount = new Set(
+    movie.showtimes.filter(s => s.date > today).map(s => s.date)
+  ).size
 
   return (
     <div className="min-h-screen bg-background">
@@ -102,9 +115,22 @@ export function MovieDetail({ movie, onBack }: MovieDetailProps) {
         </div>
 
         {/* Showtimes */}
-        <h2 className="text-2xl font-bold mb-4">Showtimes</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold">Showtimes</h2>
+          {futureDatesCount > 0 && (
+            <Button
+              variant={showFutureDates ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowFutureDates(!showFutureDates)}
+              className="gap-2"
+            >
+              <Calendar className="h-4 w-4" />
+              {showFutureDates ? "Today only" : `+${futureDatesCount} more days`}
+            </Button>
+          )}
+        </div>
         {showtimesByDate.length === 0 ? (
-          <p className="text-muted-foreground">No showtimes available</p>
+          <p className="text-muted-foreground">No showtimes available for today</p>
         ) : (
           <div className="space-y-6">
             {showtimesByDate.map(({ date, cinemas }) => (

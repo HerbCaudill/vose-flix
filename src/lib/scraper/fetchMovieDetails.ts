@@ -139,7 +139,7 @@ async function extractShowtimes($: cheerio.CheerioAPI, movieSlug: string): Promi
       batch.map(async data => {
         const bookingUrl = await resolveBookingUrl(BASE_URL + data.href)
         return { ...data, bookingUrl }
-      })
+      }),
     )
 
     for (const data of resolvedUrls) {
@@ -169,7 +169,11 @@ async function resolveBookingUrl(redirectUrl: string): Promise<string> {
     const $ = cheerio.load(html)
 
     // Look for the actual booking link - usually a "Buy tickets" or external link
-    const bookingLink = $('a[href*="cinesa.es"], a[href*="yelmo.es"], a[href*="moobycines"], a[href*="cinesverdi"], a[href*="arenascinema"], a[href*="entradas"], a[rel="nofollow"]').first().attr("href")
+    const bookingLink = $(
+      'a[href*="cinesa.es"], a[href*="yelmo.es"], a[href*="moobycines"], a[href*="cinesverdi"], a[href*="arenascinema"], a[href*="entradas"], a[rel="nofollow"]',
+    )
+      .first()
+      .attr("href")
 
     if (bookingLink) {
       return bookingLink
@@ -186,8 +190,9 @@ async function resolveBookingUrl(redirectUrl: string): Promise<string> {
 
     // Check for JavaScript redirect
     const scriptText = $("script").text()
-    const jsRedirect = scriptText.match(/window\.location\s*=\s*["']([^"']+)["']/) ||
-                       scriptText.match(/location\.href\s*=\s*["']([^"']+)["']/)
+    const jsRedirect =
+      scriptText.match(/window\.location\s*=\s*["']([^"']+)["']/) ||
+      scriptText.match(/location\.href\s*=\s*["']([^"']+)["']/)
     if (jsRedirect) {
       return jsRedirect[1]
     }
@@ -201,29 +206,72 @@ async function resolveBookingUrl(redirectUrl: string): Promise<string> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function findDateForShowtime($: cheerio.CheerioAPI, element: any): string | null {
-  // Walk up and backwards through the DOM to find a date header
   const $el = $(element)
 
-  // Look for date patterns in preceding headings
+  // Date patterns to match
   const datePatterns = [
-    /(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s*(\d{4})?/i,
     /(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s*(\d{1,2})\s+(Dec|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov)/i,
+    /(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s*(\d{4})?/i,
   ]
 
-  // Check parent sections for date info
-  const parentText = $el.parents("section, div, article").first().text()
+  // Walk backwards through previous siblings and their descendants to find the closest h3 date header
+  let current = $el.closest("p, div, li").prev()
+  while (current.length > 0) {
+    // Check if this element is an h3 or contains an h3
+    const h3Text = current.is("h3") ? current.text() : current.find("h3").first().text()
 
-  for (const pattern of datePatterns) {
-    const match = parentText.match(pattern)
-    if (match) {
-      // Parse and return ISO date
-      const dateStr = match[0]
-      const parsed = new Date(dateStr + " 2025")
-      if (!isNaN(parsed.getTime())) {
-        return parsed.toISOString().split("T")[0]
+    if (h3Text) {
+      for (const pattern of datePatterns) {
+        const match = h3Text.match(pattern)
+        if (match) {
+          const dateStr = match[0]
+          // Handle year rollover (if date is in Jan-Feb and we're in Dec, it's next year)
+          const now = new Date()
+          const currentYear = now.getFullYear()
+          let parsed = new Date(dateStr + " " + currentYear)
+
+          // If the parsed date is more than 2 months in the past, assume next year
+          if (parsed.getTime() < now.getTime() - 60 * 24 * 60 * 60 * 1000) {
+            parsed = new Date(dateStr + " " + (currentYear + 1))
+          }
+
+          if (!isNaN(parsed.getTime())) {
+            return parsed.toISOString().split("T")[0]
+          }
+        }
       }
     }
+    current = current.prev()
   }
 
-  return null
+  // Fallback: check all preceding h3 elements in the document up to this point
+  const allH3s = $("h3")
+  let closestDate: string | null = null
+
+  allH3s.each((_, h3) => {
+    const $h3 = $(h3)
+    // Only consider h3s that appear before our element in the document
+    if ($h3.parents().last().find("*").index($h3) < $el.parents().last().find("*").index($el)) {
+      const h3Text = $h3.text()
+      for (const pattern of datePatterns) {
+        const match = h3Text.match(pattern)
+        if (match) {
+          const dateStr = match[0]
+          const now = new Date()
+          const currentYear = now.getFullYear()
+          let parsed = new Date(dateStr + " " + currentYear)
+
+          if (parsed.getTime() < now.getTime() - 60 * 24 * 60 * 60 * 1000) {
+            parsed = new Date(dateStr + " " + (currentYear + 1))
+          }
+
+          if (!isNaN(parsed.getTime())) {
+            closestDate = parsed.toISOString().split("T")[0]
+          }
+        }
+      }
+    }
+  })
+
+  return closestDate
 }
