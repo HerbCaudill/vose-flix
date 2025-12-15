@@ -4,7 +4,7 @@ import { DateSelector } from "@/components/DateSelector"
 import { MovieMeta } from "@/components/MovieMeta"
 import { RatingDisplay } from "@/components/RatingDisplay"
 import type { Movie } from "@/types"
-import { ArrowLeft, ExternalLink, MapPin } from "lucide-react"
+import { ArrowLeft, MapPin } from "lucide-react"
 import { formatDateLabel } from "@/lib/formatDateLabel"
 import { groupShowtimesByCinema } from "@/lib/groupShowtimesByCinema"
 
@@ -114,9 +114,9 @@ export function MovieDetail({
           <p className="text-muted-foreground">
             No showtimes available for {formatDateLabel(selectedDate).toLowerCase()}
           </p>
-        : <div className="grid gap-4">
+        : <div className="flex gap-4 overflow-x-auto pb-2">
             {showtimesByCinema.map(({ cinema, times }) => (
-              <Card key={cinema.id}>
+              <Card key={cinema.id} className="shrink-0">
                 <CardContent className="p-4">
                   <div className="mb-3 flex items-center gap-2">
                     <MapPin className="text-muted-foreground h-4 w-4" />
@@ -130,9 +130,8 @@ export function MovieDetail({
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <Button variant="outline" size="sm" className="gap-1">
+                        <Button variant="outline" size="sm">
                           {showtime.time}
-                          <ExternalLink className="h-3 w-3" />
                         </Button>
                       </a>
                     ))}
