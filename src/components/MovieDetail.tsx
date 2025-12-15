@@ -35,9 +35,9 @@ export function MovieDetail({ movie, selectedDate, availableDates, onDateChange,
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4">
         {/* Movie header */}
-        <div className="flex flex-col md:flex-row gap-6 mb-8">
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
           {/* Poster */}
           <div className="w-full md:w-64 shrink-0">
             {movie.posterUrl ? (
@@ -72,7 +72,7 @@ export function MovieDetail({ movie, selectedDate, availableDates, onDateChange,
             </div>
 
             {/* Ratings */}
-            <div className="flex flex-wrap gap-4 mb-6">
+            <div className="flex flex-wrap gap-4">
               {ratings.rottenTomatoes && (
                 <RatingDisplay
                   label="Rotten Tomatoes"

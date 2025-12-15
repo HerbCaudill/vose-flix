@@ -17,7 +17,7 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
 
   return (
     <Card
-      className="group cursor-pointer overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl"
+      className="group cursor-pointer overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl gap-0 py-0"
       onClick={onClick}
     >
       <div className="bg-muted relative aspect-[2/3] overflow-hidden">
