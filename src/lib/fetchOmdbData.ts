@@ -2,11 +2,21 @@ import { OMDB_API_KEY } from "./constants"
 import { getCachedOmdbData, setCachedOmdbData } from "./omdbCache"
 
 export interface OmdbData {
-  imdb?: { score: number; votes: number }
+  imdb?: { score: number; votes: number; id: string }
   rottenTomatoes?: { critics: number }
   metacritic?: number
   posterUrl?: string
   year?: number
+  rated?: string // e.g., "PG-13", "R"
+  released?: string // e.g., "25 Dec 2024"
+  director?: string
+  writer?: string
+  actors?: string
+  plot?: string
+  language?: string
+  country?: string
+  awards?: string
+  boxOffice?: string
 }
 
 export async function fetchOmdbData(title: string): Promise<OmdbData> {
@@ -29,6 +39,7 @@ export async function fetchOmdbData(title: string): Promise<OmdbData> {
         result.imdb = {
           score: parseFloat(data.imdbRating),
           votes: parseInt(data.imdbVotes?.replace(/,/g, "") || "0", 10),
+          id: data.imdbID || "",
         }
       }
 
@@ -65,6 +76,38 @@ export async function fetchOmdbData(title: string): Promise<OmdbData> {
         if (yearMatch) {
           result.year = parseInt(yearMatch[1], 10)
         }
+      }
+
+      // Extract additional OMDB fields
+      if (data.Rated && data.Rated !== "N/A") {
+        result.rated = data.Rated
+      }
+      if (data.Released && data.Released !== "N/A") {
+        result.released = data.Released
+      }
+      if (data.Director && data.Director !== "N/A") {
+        result.director = data.Director
+      }
+      if (data.Writer && data.Writer !== "N/A") {
+        result.writer = data.Writer
+      }
+      if (data.Actors && data.Actors !== "N/A") {
+        result.actors = data.Actors
+      }
+      if (data.Plot && data.Plot !== "N/A") {
+        result.plot = data.Plot
+      }
+      if (data.Language && data.Language !== "N/A") {
+        result.language = data.Language
+      }
+      if (data.Country && data.Country !== "N/A") {
+        result.country = data.Country
+      }
+      if (data.Awards && data.Awards !== "N/A") {
+        result.awards = data.Awards
+      }
+      if (data.BoxOffice && data.BoxOffice !== "N/A") {
+        result.boxOffice = data.BoxOffice
       }
 
       // Cache successful response

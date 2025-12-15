@@ -4,7 +4,7 @@ import { DateSelector } from "@/components/DateSelector"
 import { MovieMeta } from "@/components/MovieMeta"
 import { RatingDisplay } from "@/components/RatingDisplay"
 import type { Movie } from "@/types"
-import { ArrowLeft, MapPin } from "lucide-react"
+import { ArrowLeft, Award, DollarSign, Globe, MapPin, Trophy, Users, Video } from "lucide-react"
 import { formatDateLabel } from "@/lib/formatDateLabel"
 import { groupShowtimesByCinema } from "@/lib/groupShowtimesByCinema"
 
@@ -74,7 +74,7 @@ export function MovieDetail({
             </div>
 
             {/* Individual ratings */}
-            <div className="flex flex-wrap gap-8">
+            <div className="mb-4 flex flex-wrap gap-8">
               {ratings.rottenTomatoes && (
                 <RatingDisplay
                   label="Rotten Tomatoes"
@@ -98,6 +98,76 @@ export function MovieDetail({
                 />
               )}
             </div>
+
+            {/* Plot */}
+            {movie.plot && (
+              <p className="text-muted-foreground mb-4">{movie.plot}</p>
+            )}
+
+            {/* Cast & Crew */}
+            <div className="mb-4 space-y-2 text-sm">
+              {movie.director && (
+                <div className="flex gap-2">
+                  <Video className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    <span className="text-muted-foreground">Director:</span>{" "}
+                    {movie.director}
+                  </span>
+                </div>
+              )}
+              {movie.writer && (
+                <div className="flex gap-2">
+                  <Award className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    <span className="text-muted-foreground">Writer:</span>{" "}
+                    {movie.writer}
+                  </span>
+                </div>
+              )}
+              {movie.actors && (
+                <div className="flex gap-2">
+                  <Users className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    <span className="text-muted-foreground">Cast:</span>{" "}
+                    {movie.actors}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Additional Info */}
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+              {movie.rated && (
+                <span>
+                  <span className="text-muted-foreground">Rated:</span> {movie.rated}
+                </span>
+              )}
+              {movie.language && (
+                <span className="flex items-center gap-1">
+                  <Globe className="text-muted-foreground h-3 w-3" />
+                  {movie.language}
+                </span>
+              )}
+              {movie.country && (
+                <span>
+                  <span className="text-muted-foreground">Country:</span> {movie.country}
+                </span>
+              )}
+              {movie.boxOffice && (
+                <span className="flex items-center gap-1">
+                  <DollarSign className="text-muted-foreground h-3 w-3" />
+                  {movie.boxOffice}
+                </span>
+              )}
+            </div>
+
+            {/* Awards */}
+            {movie.awards && movie.awards !== "N/A" && (
+              <div className="mt-4 flex items-start gap-2 text-sm">
+                <Trophy className="text-yellow-500 h-4 w-4 shrink-0 mt-0.5" />
+                <span>{movie.awards}</span>
+              </div>
+            )}
           </div>
         </div>
 

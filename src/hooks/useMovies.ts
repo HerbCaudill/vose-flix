@@ -65,6 +65,40 @@ export function useMovies(): UseMoviesResult {
               if (omdbData.year) {
                 details.year = omdbData.year
               }
+              // Add additional OMDB fields
+              if (omdbData.rated) {
+                details.rated = omdbData.rated
+              }
+              if (omdbData.released) {
+                details.released = omdbData.released
+              }
+              if (omdbData.director) {
+                details.director = omdbData.director
+              }
+              if (omdbData.writer) {
+                details.writer = omdbData.writer
+              }
+              if (omdbData.actors) {
+                details.actors = omdbData.actors
+              }
+              if (omdbData.plot) {
+                details.plot = omdbData.plot
+              }
+              if (omdbData.language) {
+                details.language = omdbData.language
+              }
+              if (omdbData.country) {
+                details.country = omdbData.country
+              }
+              if (omdbData.awards) {
+                details.awards = omdbData.awards
+              }
+              if (omdbData.boxOffice) {
+                details.boxOffice = omdbData.boxOffice
+              }
+              if (omdbData.imdb?.id) {
+                details.imdbId = omdbData.imdb.id
+              }
             }
             return details
           })

@@ -8,6 +8,18 @@ export interface Movie {
   year?: number
   ratings: Ratings
   showtimes: Showtime[]
+  // OMDB fields
+  rated?: string // e.g., "PG-13", "R"
+  released?: string // e.g., "25 Dec 2024"
+  director?: string
+  writer?: string
+  actors?: string
+  plot?: string
+  language?: string
+  country?: string
+  awards?: string
+  boxOffice?: string
+  imdbId?: string
 }
 
 export interface Ratings {
