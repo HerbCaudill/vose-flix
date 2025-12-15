@@ -2,6 +2,38 @@ import { useState, useEffect, useCallback } from "react"
 import type { Movie, Ratings } from "@/types"
 import { fetchMovieList, fetchMovieDetails, fetchOmdbData } from "@/lib/scraper"
 
+const MOVIES_CACHE_KEY = "movies-cache"
+const MOVIES_CACHE_TTL = 8 * 60 * 60 * 1000 // 8 hours
+
+interface MoviesCache {
+  movies: Movie[]
+  timestamp: number
+}
+
+function getCachedMovies(): Movie[] | null {
+  try {
+    const cached = localStorage.getItem(MOVIES_CACHE_KEY)
+    if (cached) {
+      const parsed = JSON.parse(cached) as MoviesCache
+      if (Date.now() - parsed.timestamp < MOVIES_CACHE_TTL) {
+        return parsed.movies
+      }
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return null
+}
+
+function setCachedMovies(movies: Movie[]): void {
+  try {
+    const cache: MoviesCache = { movies, timestamp: Date.now() }
+    localStorage.setItem(MOVIES_CACHE_KEY, JSON.stringify(cache))
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 // Calculate normalized score from 0-100 based on available ratings
 function calculateNormalizedScore(ratings: Ratings): number | null {
   const scores: number[] = []
@@ -54,14 +86,21 @@ export function useMovies(): UseMoviesResult {
     setError(null)
 
     try {
+      // Check for cached movies first - instant load
+      const cached = getCachedMovies()
+      if (cached) {
+        setMovies(cached)
+        setLoading(false)
+        return
+      }
+
       // First, get the list of movies
       const movieList = await fetchMovieList()
 
-      // Then fetch details for each movie (in parallel, but limited)
+      // Process movies - use smaller batches to avoid overwhelming servers
       const detailedMovies: Movie[] = []
+      const batchSize = 3
 
-      // Process in batches of 5 to avoid overwhelming the server
-      const batchSize = 5
       for (let i = 0; i < movieList.length; i += batchSize) {
         const batch = movieList.slice(i, i + batchSize)
         const results = await Promise.all(
@@ -100,9 +139,12 @@ export function useMovies(): UseMoviesResult {
           }
         }
 
-        // Update state progressively (sorted)
+        // Update state progressively so user sees results faster
         setMovies(sortMovies(detailedMovies))
       }
+
+      // Cache the final result
+      setCachedMovies(sortMovies(detailedMovies))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load movies")
     } finally {

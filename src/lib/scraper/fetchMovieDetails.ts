@@ -131,77 +131,25 @@ async function extractShowtimes($: cheerio.CheerioAPI, movieSlug: string): Promi
     showtimeData.push({ href, time, cinemaSlug, cinemaName, date })
   })
 
-  // Resolve booking URLs in parallel (batch of 10)
-  const batchSize = 10
-  for (let i = 0; i < showtimeData.length; i += batchSize) {
-    const batch = showtimeData.slice(i, i + batchSize)
-    const resolvedUrls = await Promise.all(
-      batch.map(async data => {
-        const bookingUrl = await resolveBookingUrl(BASE_URL + data.href)
-        return { ...data, bookingUrl }
-      }),
-    )
-
-    for (const data of resolvedUrls) {
-      if (!cinemas.has(data.cinemaSlug)) {
-        cinemas.set(data.cinemaSlug, {
-          id: data.cinemaSlug,
-          name: data.cinemaName,
-          slug: data.cinemaSlug,
-        })
-      }
-
-      showtimes.push({
-        cinema: cinemas.get(data.cinemaSlug)!,
-        date: data.date,
-        time: data.time,
-        bookingUrl: data.bookingUrl,
+  // Use the redirect URLs directly - they'll redirect to the actual booking page when clicked
+  for (const data of showtimeData) {
+    if (!cinemas.has(data.cinemaSlug)) {
+      cinemas.set(data.cinemaSlug, {
+        id: data.cinemaSlug,
+        name: data.cinemaName,
+        slug: data.cinemaSlug,
       })
     }
+
+    showtimes.push({
+      cinema: cinemas.get(data.cinemaSlug)!,
+      date: data.date,
+      time: data.time,
+      bookingUrl: BASE_URL + data.href,
+    })
   }
 
   return showtimes
-}
-
-async function resolveBookingUrl(redirectUrl: string): Promise<string> {
-  try {
-    const html = await fetchHtml(redirectUrl)
-    const $ = cheerio.load(html)
-
-    // Look for the actual booking link - usually a "Buy tickets" or external link
-    const bookingLink = $(
-      'a[href*="cinesa.es"], a[href*="yelmo.es"], a[href*="moobycines"], a[href*="cinesverdi"], a[href*="arenascinema"], a[href*="entradas"], a[rel="nofollow"]',
-    )
-      .first()
-      .attr("href")
-
-    if (bookingLink) {
-      return bookingLink
-    }
-
-    // Check for meta refresh redirect
-    const metaRefresh = $('meta[http-equiv="refresh"]').attr("content")
-    if (metaRefresh) {
-      const urlMatch = metaRefresh.match(/url=(.+)/i)
-      if (urlMatch) {
-        return urlMatch[1]
-      }
-    }
-
-    // Check for JavaScript redirect
-    const scriptText = $("script").text()
-    const jsRedirect =
-      scriptText.match(/window\.location\s*=\s*["']([^"']+)["']/) ||
-      scriptText.match(/location\.href\s*=\s*["']([^"']+)["']/)
-    if (jsRedirect) {
-      return jsRedirect[1]
-    }
-  } catch (error) {
-    console.error("Failed to resolve booking URL:", error)
-  }
-
-  // Fall back to the redirect URL if we can't resolve it
-  return redirectUrl
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
