@@ -1,7 +1,8 @@
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { MovieMeta } from "@/components/MovieMeta"
+import { groupShowtimesByCinema } from "@/lib/groupShowtimesByCinema"
 import type { Movie } from "@/types"
-import { Popcorn, Projector } from "lucide-react"
 
 interface MovieCardProps {
   movie: Movie
@@ -12,7 +13,7 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
   // Get today's showtimes
   const today = new Date().toISOString().split("T")[0]
   const todayShowtimes = movie.showtimes.filter(s => s.date === today)
-  const cinemaCount = new Set(todayShowtimes.map(s => s.cinema.id)).size
+  const showtimesByCinema = groupShowtimesByCinema(todayShowtimes)
 
   return (
     <Card
@@ -40,16 +41,28 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
           duration={movie.duration}
           ratings={movie.ratings}
         />
-        {todayShowtimes.length > 0 && (
-          <div className="text-muted-foreground mt-2 text-xs space-y-0.5">
-            <div className="flex items-center gap-1">
-              <Popcorn className="h-3 w-3" />
-              {todayShowtimes.length} showing{todayShowtimes.length !== 1 ? "s" : ""}
-            </div>
-            <div className="flex items-center gap-1">
-              <Projector className="h-3 w-3" />
-              {cinemaCount} cinema{cinemaCount !== 1 ? "s" : ""}
-            </div>
+        {showtimesByCinema.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {showtimesByCinema.map(({ cinema, times }) => (
+              <div key={cinema.id}>
+                <div className="text-muted-foreground text-xs mb-1">{cinema.name}</div>
+                <div className="flex flex-wrap gap-1">
+                  {times.map((showtime, i) => (
+                    <a
+                      key={i}
+                      href={showtime.bookingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <Button variant="outline" size="sm" className="h-6 px-2 text-xs">
+                        {showtime.time}
+                      </Button>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </CardContent>

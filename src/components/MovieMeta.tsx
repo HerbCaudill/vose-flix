@@ -21,10 +21,10 @@ export function MovieMeta({ year, duration, ratings, genres }: MovieMetaProps) {
   const normalizedScore = calculateNormalizedScore(ratings)
 
   return (
-    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+    <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
       {normalizedScore !== null && (
-        <Badge className={`${getScoreColor(normalizedScore)} text-white font-bold gap-1`}>
-                    {Math.round(normalizedScore)}
+        <Badge className={`${getScoreColor(normalizedScore)} gap-1 font-bold text-white`}>
+          {Math.round(normalizedScore)}
         </Badge>
       )}
       {year && <span>{year}</span>}
