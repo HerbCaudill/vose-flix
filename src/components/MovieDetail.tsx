@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { DateSelector } from "@/components/DateSelector"
+import { MovieMeta } from "@/components/MovieMeta"
 import { RatingDisplay } from "@/components/RatingDisplay"
 import type { Movie } from "@/types"
-import { ArrowLeft, ExternalLink, Clock, MapPin } from "lucide-react"
+import { ArrowLeft, ExternalLink, MapPin } from "lucide-react"
 import { formatDateLabel } from "@/lib/formatDateLabel"
-import { formatDuration } from "@/lib/formatDuration"
 import { groupShowtimesByCinema } from "@/lib/groupShowtimesByCinema"
 
 interface MovieDetailProps {
@@ -60,56 +59,34 @@ export function MovieDetail({ movie, selectedDate, availableDates, onDateChange,
           <div className="flex-1">
             <h1 className="text-3xl font-bold mb-2">{movie.title}</h1>
 
-            <div className="flex flex-wrap gap-2 mb-4">
-              {movie.year && (
-                <Badge variant="secondary">
-                  {movie.year}
-                </Badge>
-              )}
-              {movie.duration > 0 && (
-                <Badge variant="secondary" className="gap-1">
-                  <Clock className="h-3 w-3" />
-                  {formatDuration(movie.duration)}
-                </Badge>
-              )}
-              {movie.genres.map(genre => (
-                <Badge key={genre} variant="outline">
-                  {genre}
-                </Badge>
-              ))}
+            <div className="mb-4">
+              <MovieMeta
+                year={movie.year}
+                duration={movie.duration}
+                ratings={movie.ratings}
+                genres={movie.genres}
+              />
             </div>
 
-            {/* Ratings */}
-            <div className="flex flex-wrap gap-4">
+            {/* Individual ratings */}
+            <div className="flex flex-wrap gap-6">
               {ratings.rottenTomatoes && (
                 <RatingDisplay
                   label="Rotten Tomatoes"
-                  icon="🍅"
                   value={`${ratings.rottenTomatoes.critics}%`}
-                  color={ratings.rottenTomatoes.critics >= 60 ? "text-red-500" : "text-green-500"}
                 />
               )}
               {ratings.metacritic && (
                 <RatingDisplay
                   label="Metacritic"
-                  icon="M"
                   value={ratings.metacritic.toString()}
-                  color={
-                    ratings.metacritic >= 60
-                      ? "text-green-500"
-                      : ratings.metacritic >= 40
-                        ? "text-yellow-500"
-                        : "text-red-500"
-                  }
                 />
               )}
               {ratings.imdb && (
                 <RatingDisplay
                   label="IMDB"
-                  icon="★"
                   value={`${ratings.imdb.score.toFixed(1)}/10`}
                   subtext={`${(ratings.imdb.votes / 1000).toFixed(0)}k votes`}
-                  color="text-yellow-500"
                 />
               )}
             </div>
