@@ -33,14 +33,18 @@ export function useMovies(): UseMoviesResult {
           batch.map(async item => {
             const details = await fetchMovieDetails(item.slug)
             if (details) {
-              // Fetch OMDB data for IMDB rating and poster
+              // Fetch OMDB data for ratings and poster
               const omdbData = await fetchOmdbData(details.title)
               if (omdbData.imdb) {
                 details.ratings.imdb = omdbData.imdb
               }
-              // Use OMDB poster if we don't have one from scraping
-              if (omdbData.posterUrl && !details.posterUrl) {
-                details.posterUrl = omdbData.posterUrl
+              // Use OMDB Rotten Tomatoes if not scraped from website
+              if (omdbData.rottenTomatoes && !details.ratings.rottenTomatoes) {
+                details.ratings.rottenTomatoes = omdbData.rottenTomatoes
+              }
+              // Use OMDB Metacritic if not scraped from website
+              if (omdbData.metacritic && !details.ratings.metacritic) {
+                details.ratings.metacritic = omdbData.metacritic
               }
               // Prefer OMDB poster as it's usually better quality
               if (omdbData.posterUrl) {
