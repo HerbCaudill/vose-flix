@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DateSelector } from "@/components/DateSelector"
@@ -7,6 +8,31 @@ import type { Movie } from "@/types"
 import { ArrowLeft, Award, DollarSign, Globe, MapPin, Trophy, Users, Video } from "lucide-react"
 import { formatDateLabel } from "@/lib/formatDateLabel"
 import { groupShowtimesByCinema } from "@/lib/groupShowtimesByCinema"
+
+function getMpaaRatingColor(rated: string): string {
+  switch (rated) {
+    case "G":
+      return "bg-green-600"
+    case "PG":
+      return "bg-blue-500"
+    case "PG-13":
+      return "bg-yellow-500 text-black"
+    case "R":
+      return "bg-red-600"
+    case "NC-17":
+      return "bg-purple-700"
+    default:
+      return "bg-gray-500"
+  }
+}
+
+function MpaaRatingBadge({ rated }: { rated: string }) {
+  return (
+    <Badge className={`${getMpaaRatingColor(rated)} text-xs font-bold shadow-md`}>
+      {rated}
+    </Badge>
+  )
+}
 
 interface MovieDetailProps {
   movie: Movie
@@ -136,12 +162,8 @@ export function MovieDetail({
             </div>
 
             {/* Additional Info */}
-            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-              {movie.rated && (
-                <span>
-                  <span className="text-muted-foreground">Rated:</span> {movie.rated}
-                </span>
-              )}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+              {movie.rated && <MpaaRatingBadge rated={movie.rated} />}
               {movie.language && (
                 <span className="flex items-center gap-1">
                   <Globe className="text-muted-foreground h-3 w-3" />
