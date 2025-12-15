@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react"
 import type { Movie } from "@/types"
-import { fetchMovieList, fetchMovieDetails, fetchOmdbData } from "@/lib/scraper"
+import { fetchMovieList } from "@/lib/fetchMovieList"
+import { fetchMovieDetails } from "@/lib/fetchMovieDetails"
+import { fetchOmdbData } from "@/lib/fetchOmdbData"
 import { getCachedMovies, setCachedMovies } from "@/lib/moviesCache"
 import { sortMovies } from "@/lib/sortMovies"
 
