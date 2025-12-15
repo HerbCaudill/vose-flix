@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import { Clock, Clapperboard } from "lucide-react"
+import { Clock } from "lucide-react"
 import { formatDuration } from "@/lib/formatDuration"
 import { calculateNormalizedScore } from "@/lib/calculateNormalizedScore"
 import type { Ratings } from "@/types"
@@ -24,8 +24,7 @@ export function MovieMeta({ year, duration, ratings, genres }: MovieMetaProps) {
     <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
       {normalizedScore !== null && (
         <Badge className={`${getScoreColor(normalizedScore)} text-white font-bold gap-1`}>
-          <Clapperboard className="h-3 w-3" />
-          {Math.round(normalizedScore)}
+                    {Math.round(normalizedScore)}
         </Badge>
       )}
       {year && <span>{year}</span>}

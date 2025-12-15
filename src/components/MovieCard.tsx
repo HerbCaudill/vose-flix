@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { MovieMeta } from "@/components/MovieMeta"
 import type { Movie } from "@/types"
+import { Popcorn, Projector } from "lucide-react"
 
 interface MovieCardProps {
   movie: Movie
@@ -40,8 +41,15 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
           ratings={movie.ratings}
         />
         {todayShowtimes.length > 0 && (
-          <div className="text-muted-foreground mt-2 text-xs">
-            {todayShowtimes.length} showings at {cinemaCount} cinema{cinemaCount !== 1 ? "s" : ""}
+          <div className="text-muted-foreground mt-2 text-xs space-y-0.5">
+            <div className="flex items-center gap-1">
+              <Popcorn className="h-3 w-3" />
+              {todayShowtimes.length} showing{todayShowtimes.length !== 1 ? "s" : ""}
+            </div>
+            <div className="flex items-center gap-1">
+              <Projector className="h-3 w-3" />
+              {cinemaCount} cinema{cinemaCount !== 1 ? "s" : ""}
+            </div>
           </div>
         )}
       </CardContent>
