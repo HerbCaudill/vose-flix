@@ -1,43 +1,27 @@
-import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { DateSelector } from "@/components/DateSelector"
 import type { Movie, Showtime } from "@/types"
 import { format, parseISO, isToday, isTomorrow } from "date-fns"
-import { ArrowLeft, ExternalLink, Clock, MapPin, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowLeft, ExternalLink, Clock, MapPin } from "lucide-react"
 
 interface MovieDetailProps {
   movie: Movie
-  selectedDate: string | null
+  selectedDate: string
+  availableDates: string[]
   onDateChange: (date: string) => void
   onBack: () => void
 }
 
-export function MovieDetail({ movie, selectedDate: selectedDateProp, onDateChange, onBack }: MovieDetailProps) {
+export function MovieDetail({ movie, selectedDate, availableDates, onDateChange, onBack }: MovieDetailProps) {
   const { ratings } = movie
-
-  // Get all available dates sorted
-  const today = new Date().toISOString().split("T")[0]
-  const availableDates = useMemo(() => {
-    const dates = [...new Set(movie.showtimes.filter(s => s.date >= today).map(s => s.date))]
-    return dates.sort()
-  }, [movie.showtimes, today])
-
-  // Use prop date if valid, otherwise default to first available date
-  const selectedDate = selectedDateProp && availableDates.includes(selectedDateProp)
-    ? selectedDateProp
-    : availableDates[0] || today
-
-  const selectedDateIndex = availableDates.indexOf(selectedDate)
 
   // Filter showtimes for selected date
   const filteredShowtimes = movie.showtimes.filter(s => s.date === selectedDate)
 
   // Group showtimes by cinema
   const showtimesByCinema = groupShowtimesByCinema(filteredShowtimes)
-
-  const canGoPrev = selectedDateIndex > 0
-  const canGoNext = selectedDateIndex < availableDates.length - 1
 
   return (
     <div className="min-h-screen bg-background">
@@ -127,31 +111,11 @@ export function MovieDetail({ movie, selectedDate: selectedDateProp, onDateChang
         {/* Showtimes */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">Showtimes</h2>
-          {availableDates.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => onDateChange(availableDates[selectedDateIndex - 1])}
-                disabled={!canGoPrev}
-                className="h-8 w-8"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="min-w-[120px] text-center font-medium">
-                {formatDateLabel(selectedDate)}
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => onDateChange(availableDates[selectedDateIndex + 1])}
-                disabled={!canGoNext}
-                className="h-8 w-8"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          <DateSelector
+            availableDates={availableDates}
+            selectedDate={selectedDate}
+            onDateChange={onDateChange}
+          />
         </div>
         {showtimesByCinema.length === 0 ? (
           <p className="text-muted-foreground">No showtimes available for {formatDateLabel(selectedDate).toLowerCase()}</p>

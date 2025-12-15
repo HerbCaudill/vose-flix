@@ -1,27 +1,84 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useMovies } from "@/hooks/useMovies"
 import { MovieGrid } from "@/components/MovieGrid"
 import { MovieDetail } from "@/components/MovieDetail"
+import { DateSelector } from "@/components/DateSelector"
 import { Button } from "@/components/ui/button"
 import type { Movie } from "@/types"
 import { RefreshCw, Film } from "lucide-react"
 
-function getStateFromUrl(): { movieSlug: string | null; date: string | null } {
-  const params = new URLSearchParams(window.location.search)
-  return {
-    movieSlug: params.get("movie"),
-    date: params.get("date"),
+function getToday(): string {
+  return new Date().toISOString().split("T")[0]
+}
+
+function getStateFromUrl(): { movieSlug: string | null; date: string } {
+  const path = window.location.pathname
+
+  // URL format: /{date}/{movie-slug}
+  const movieMatch = path.match(/^\/(\d{4}-\d{2}-\d{2})\/(.+)$/)
+  if (movieMatch) {
+    return {
+      date: movieMatch[1],
+      movieSlug: decodeURIComponent(movieMatch[2]),
+    }
   }
+
+  // URL format: /{date}
+  const dateMatch = path.match(/^\/(\d{4}-\d{2}-\d{2})\/?$/)
+  if (dateMatch) {
+    return {
+      date: dateMatch[1],
+      movieSlug: null,
+    }
+  }
+
+  // Default to today
+  return { movieSlug: null, date: getToday() }
 }
 
 export default function App() {
   const { movies, loading, error, refresh } = useMovies()
   const [urlState, setUrlState] = useState(getStateFromUrl)
 
+  // Get all available dates from all movies
+  const today = getToday()
+  const availableDates = useMemo(() => {
+    const dates = new Set<string>()
+    for (const movie of movies) {
+      for (const showtime of movie.showtimes) {
+        if (showtime.date >= today) {
+          dates.add(showtime.date)
+        }
+      }
+    }
+    return [...dates].sort()
+  }, [movies, today])
+
+  // Ensure selected date is valid
+  const selectedDate = availableDates.includes(urlState.date)
+    ? urlState.date
+    : availableDates[0] || today
+
   // Find movie by slug
   const selectedMovie = urlState.movieSlug
     ? movies.find(m => m.slug === urlState.movieSlug) || null
     : null
+
+  // Filter movies that have showtimes on selected date
+  const moviesForDate = useMemo(() => {
+    return movies.filter(movie =>
+      movie.showtimes.some(s => s.date === selectedDate)
+    )
+  }, [movies, selectedDate])
+
+  // Redirect to today's date on initial load if at root
+  useEffect(() => {
+    if (window.location.pathname === "/" && availableDates.length > 0) {
+      const targetDate = availableDates.includes(today) ? today : availableDates[0]
+      window.history.replaceState({}, "", `/${targetDate}`)
+      setUrlState({ movieSlug: null, date: targetDate })
+    }
+  }, [availableDates, today])
 
   // Handle browser back/forward
   useEffect(() => {
@@ -32,31 +89,31 @@ export default function App() {
     return () => window.removeEventListener("popstate", handlePopState)
   }, [])
 
-  const selectMovie = useCallback((movie: Movie | null) => {
-    if (movie) {
-      const today = new Date().toISOString().split("T")[0]
-      const params = new URLSearchParams({ movie: movie.slug, date: today })
-      window.history.pushState({}, "", `?${params}`)
-      setUrlState({ movieSlug: movie.slug, date: today })
-    } else {
-      window.history.pushState({}, "", window.location.pathname)
-      setUrlState({ movieSlug: null, date: null })
-    }
-  }, [])
-
   const setSelectedDate = useCallback((date: string) => {
     if (urlState.movieSlug) {
-      const params = new URLSearchParams({ movie: urlState.movieSlug, date })
-      window.history.pushState({}, "", `?${params}`)
-      setUrlState(prev => ({ ...prev, date }))
+      window.history.pushState({}, "", `/${date}/${encodeURIComponent(urlState.movieSlug)}`)
+    } else {
+      window.history.pushState({}, "", `/${date}`)
     }
+    setUrlState(prev => ({ ...prev, date }))
   }, [urlState.movieSlug])
+
+  const selectMovie = useCallback((movie: Movie | null) => {
+    if (movie) {
+      window.history.pushState({}, "", `/${selectedDate}/${encodeURIComponent(movie.slug)}`)
+      setUrlState(prev => ({ ...prev, movieSlug: movie.slug }))
+    } else {
+      window.history.pushState({}, "", `/${selectedDate}`)
+      setUrlState(prev => ({ ...prev, movieSlug: null }))
+    }
+  }, [selectedDate])
 
   if (selectedMovie) {
     return (
       <MovieDetail
         movie={selectedMovie}
-        selectedDate={urlState.date}
+        selectedDate={selectedDate}
+        availableDates={availableDates}
         onDateChange={setSelectedDate}
         onBack={() => selectMovie(null)}
       />
@@ -76,10 +133,17 @@ export default function App() {
                 Non-dubbed movies in Barcelona
               </span>
             </div>
-            <Button variant="outline" size="sm" onClick={refresh} disabled={loading} className="gap-2">
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-4">
+              <DateSelector
+                availableDates={availableDates}
+                selectedDate={selectedDate}
+                onDateChange={setSelectedDate}
+              />
+              <Button variant="outline" size="sm" onClick={refresh} disabled={loading} className="gap-2">
+                <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                <span className="hidden sm:inline">Refresh</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -95,11 +159,11 @@ export default function App() {
 
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            {loading ? "Loading movies..." : `${movies.length} movies showing in VOSE`}
+            {loading ? "Loading movies..." : `${moviesForDate.length} movies showing`}
           </p>
         </div>
 
-        <MovieGrid movies={movies} loading={loading} onMovieClick={selectMovie} />
+        <MovieGrid movies={moviesForDate} loading={loading} onMovieClick={selectMovie} />
       </main>
 
       {/* Footer */}

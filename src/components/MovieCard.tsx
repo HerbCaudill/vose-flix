@@ -20,19 +20,18 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
       className="group cursor-pointer overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl"
       onClick={onClick}
     >
-      <div className="relative aspect-[2/3] overflow-hidden bg-muted">
-        {movie.posterUrl ? (
+      <div className="bg-muted relative aspect-[2/3] overflow-hidden">
+        {movie.posterUrl ?
           <img
             src={movie.posterUrl}
             alt={movie.title}
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
             loading="lazy"
           />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
+        : <div className="text-muted-foreground flex h-full items-center justify-center">
             No poster
           </div>
-        )}
+        }
 
         {/* Rating badges overlay */}
         <div className="absolute top-2 right-2 flex flex-col gap-1">
@@ -44,17 +43,25 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
             />
           )}
           {ratings.metacritic && (
-            <RatingBadge type="mc" value={ratings.metacritic} label={ratings.metacritic.toString()} />
+            <RatingBadge
+              type="mc"
+              value={ratings.metacritic}
+              label={ratings.metacritic.toString()}
+            />
           )}
           {ratings.imdb && (
-            <RatingBadge type="imdb" value={ratings.imdb.score * 10} label={ratings.imdb.score.toFixed(1)} />
+            <RatingBadge
+              type="imdb"
+              value={ratings.imdb.score * 10}
+              label={ratings.imdb.score.toFixed(1)}
+            />
           )}
         </div>
       </div>
 
       <CardContent className="p-3">
-        <h3 className="line-clamp-2 font-semibold leading-tight">{movie.title}</h3>
-        <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+        <h3 className="line-clamp-2 leading-tight font-semibold">{movie.title}</h3>
+        <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
           {movie.duration > 0 && <span>{formatDuration(movie.duration)}</span>}
           {movie.genres.length > 0 && (
             <>
@@ -64,8 +71,8 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
           )}
         </div>
         {todayShowtimes.length > 0 && (
-          <div className="mt-2 text-xs text-muted-foreground">
-            {todayShowtimes.length} showings at {cinemaCount} cinema{cinemaCount !== 1 ? "s" : ""} today
+          <div className="text-muted-foreground mt-2 text-xs">
+            {todayShowtimes.length} showings at {cinemaCount} cinema{cinemaCount !== 1 ? "s" : ""}
           </div>
         )}
       </CardContent>
@@ -82,8 +89,14 @@ interface RatingBadgeProps {
 function RatingBadge({ type, value, label }: RatingBadgeProps) {
   const colors = {
     rt: value >= 60 ? "bg-red-600" : "bg-green-600",
-    mc: value >= 60 ? "bg-green-600" : value >= 40 ? "bg-yellow-500" : "bg-red-600",
-    imdb: value >= 70 ? "bg-yellow-500" : value >= 50 ? "bg-yellow-600" : "bg-yellow-700",
+    mc:
+      value >= 60 ? "bg-green-600"
+      : value >= 40 ? "bg-yellow-500"
+      : "bg-red-600",
+    imdb:
+      value >= 70 ? "bg-yellow-500"
+      : value >= 50 ? "bg-yellow-600"
+      : "bg-yellow-700",
   }
 
   const icons = {
@@ -93,7 +106,7 @@ function RatingBadge({ type, value, label }: RatingBadgeProps) {
   }
 
   return (
-    <Badge className={`${colors[type]} text-white text-xs font-bold shadow-md`}>
+    <Badge className={`${colors[type]} text-xs font-bold text-white shadow-md`}>
       <span className="mr-1">{icons[type]}</span>
       {label}
     </Badge>
