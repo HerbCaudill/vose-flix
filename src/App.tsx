@@ -90,8 +90,12 @@ export default function App() {
   const { movies, loading, error, refresh } = useMovies()
   const [urlState, setUrlState] = useState(getStateFromUrl)
   const [minScore, setMinScore] = useState<number | null>(loadMinScore)
-  const [selectedCinemas, setSelectedCinemas] = useState<Set<string>>(() => loadSelectedCinemas() ?? new Set())
-  const [timeRange, setTimeRange] = useState<[number, number]>(() => loadTimeRange() ?? DEFAULT_TIME_RANGE)
+  const [selectedCinemas, setSelectedCinemas] = useState<Set<string>>(
+    () => loadSelectedCinemas() ?? new Set(),
+  )
+  const [timeRange, setTimeRange] = useState<[number, number]>(
+    () => loadTimeRange() ?? DEFAULT_TIME_RANGE,
+  )
 
   // Get all unique cinemas from movies
   const allCinemas = useMemo(() => {
@@ -245,7 +249,7 @@ export default function App() {
               Barcelona movies with the original audio
             </span>
           </div>
-          <div className="order-last w-full border-t pt-3 mt-3 flex items-center justify-between sm:justify-start gap-4 sm:order-none sm:ml-auto sm:w-auto sm:border-0 sm:p-0 sm:m-0">
+          <div className="order-last mt-3 flex w-full items-center justify-between gap-4 border-t pt-3 sm:order-none sm:m-0 sm:ml-auto sm:w-auto sm:justify-start sm:border-0 sm:p-0">
             <DateSelector
               availableDates={availableDates}
               selectedDate={selectedDate}
@@ -289,7 +293,14 @@ export default function App() {
           </p>
         </div>
 
-        <MovieGrid movies={moviesForDate} loading={loading} onMovieClick={selectMovie} selectedDate={selectedDate} selectedCinemas={selectedCinemas} timeRange={timeRange} />
+        <MovieGrid
+          movies={moviesForDate}
+          loading={loading}
+          onMovieClick={selectMovie}
+          selectedDate={selectedDate}
+          selectedCinemas={selectedCinemas}
+          timeRange={timeRange}
+        />
       </main>
 
       {/* Footer */}
@@ -305,7 +316,6 @@ export default function App() {
             English Cinema Barcelona
           </a>
         </p>
-        <p className="mt-1">Ratings from Rotten Tomatoes, Metacritic, and IMDB</p>
       </footer>
     </div>
   )
