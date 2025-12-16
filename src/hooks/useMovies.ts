@@ -2,12 +2,43 @@ import { useState, useEffect, useCallback } from "react"
 import type { Movie } from "@/types"
 import { fetchMovieList } from "@/lib/fetchMovieList"
 import { fetchMovieDetails } from "@/lib/fetchMovieDetails"
-import { fetchOmdbData } from "@/lib/fetchOmdbData"
+import { fetchOmdbData, type OmdbData } from "@/lib/fetchOmdbData"
 import { fetchTmdbTrailer } from "@/lib/fetchTmdbTrailer"
 import { getCachedMovies, setCachedMovies, clearMoviesCache } from "@/lib/moviesCache"
 import { clearOmdbCache } from "@/lib/omdbCache"
 import { clearHtmlCache } from "@/lib/htmlCache"
 import { sortMovies } from "@/lib/sortMovies"
+
+const BATCH_SIZE = 3
+
+function mergeOmdbData(movie: Movie, omdb: OmdbData): Movie {
+  // Ratings (use OMDB as fallback if not scraped from website)
+  if (omdb.imdb) movie.ratings.imdb = omdb.imdb
+  if (omdb.rottenTomatoes && !movie.ratings.rottenTomatoes) {
+    movie.ratings.rottenTomatoes = omdb.rottenTomatoes
+  }
+  if (omdb.metacritic && !movie.ratings.metacritic) {
+    movie.ratings.metacritic = omdb.metacritic
+  }
+
+  return {
+    ...movie,
+    ...omdb,
+    imdbId: omdb.imdb?.id,
+  }
+}
+
+async function enrichMovieDetails(slug: string): Promise<Movie | null> {
+  const movie = await fetchMovieDetails(slug)
+  if (!movie) return null
+
+  // Fetch trailer from TMDB
+  movie.trailerKey = (await fetchTmdbTrailer(movie.title, movie.year)) || undefined
+
+  // Fetch and merge OMDB data
+  const omdbData = await fetchOmdbData(movie.title)
+  return mergeOmdbData(movie, omdbData)
+}
 
 interface UseMoviesResult {
   movies: Movie[]
@@ -26,7 +57,7 @@ export function useMovies(): UseMoviesResult {
     setError(null)
 
     try {
-      // Check for cached movies first - instant load
+      // Check for cached movies first
       const cached = getCachedMovies()
       if (cached) {
         setMovies(cached)
@@ -34,96 +65,22 @@ export function useMovies(): UseMoviesResult {
         return
       }
 
-      // First, get the list of movies
       const movieList = await fetchMovieList()
-
-      // Process movies - use smaller batches to avoid overwhelming servers
       const detailedMovies: Movie[] = []
-      const batchSize = 3
 
-      for (let i = 0; i < movieList.length; i += batchSize) {
-        const batch = movieList.slice(i, i + batchSize)
-        const results = await Promise.all(
-          batch.map(async item => {
-            const details = await fetchMovieDetails(item.slug)
-            if (details) {
-              // Fetch OMDB data for ratings and poster
-              const omdbData = await fetchOmdbData(details.title)
-              if (omdbData.imdb) {
-                details.ratings.imdb = omdbData.imdb
-              }
-              // Use OMDB Rotten Tomatoes if not scraped from website
-              if (omdbData.rottenTomatoes && !details.ratings.rottenTomatoes) {
-                details.ratings.rottenTomatoes = omdbData.rottenTomatoes
-              }
-              // Use OMDB Metacritic if not scraped from website
-              if (omdbData.metacritic && !details.ratings.metacritic) {
-                details.ratings.metacritic = omdbData.metacritic
-              }
-              // Prefer OMDB poster as it's usually better quality
-              if (omdbData.posterUrl) {
-                details.posterUrl = omdbData.posterUrl
-              }
-              // Add year
-              if (omdbData.year) {
-                details.year = omdbData.year
-              }
-              // Add additional OMDB fields
-              if (omdbData.rated) {
-                details.rated = omdbData.rated
-              }
-              if (omdbData.released) {
-                details.released = omdbData.released
-              }
-              if (omdbData.director) {
-                details.director = omdbData.director
-              }
-              if (omdbData.writer) {
-                details.writer = omdbData.writer
-              }
-              if (omdbData.actors) {
-                details.actors = omdbData.actors
-              }
-              if (omdbData.plot) {
-                details.plot = omdbData.plot
-              }
-              if (omdbData.language) {
-                details.language = omdbData.language
-              }
-              if (omdbData.country) {
-                details.country = omdbData.country
-              }
-              if (omdbData.awards) {
-                details.awards = omdbData.awards
-              }
-              if (omdbData.boxOffice) {
-                details.boxOffice = omdbData.boxOffice
-              }
-              if (omdbData.imdb?.id) {
-                details.imdbId = omdbData.imdb.id
-              }
-
-              // Fetch trailer from TMDB
-              const trailerKey = await fetchTmdbTrailer(details.title, details.year)
-              if (trailerKey) {
-                details.trailerKey = trailerKey
-              }
-            }
-            return details
-          }),
-        )
+      // Process in batches to avoid overwhelming servers
+      for (let i = 0; i < movieList.length; i += BATCH_SIZE) {
+        const batch = movieList.slice(i, i + BATCH_SIZE)
+        const results = await Promise.all(batch.map(item => enrichMovieDetails(item.slug)))
 
         for (const movie of results) {
-          if (movie) {
-            detailedMovies.push(movie)
-          }
+          if (movie) detailedMovies.push(movie)
         }
 
-        // Update state progressively so user sees results faster
+        // Update progressively so user sees results faster
         setMovies(sortMovies(detailedMovies))
       }
 
-      // Cache the final result
       setCachedMovies(sortMovies(detailedMovies))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load movies")

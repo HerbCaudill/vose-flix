@@ -55,20 +55,16 @@ export default function App() {
   }, [movies, today])
 
   // Ensure selected date is valid
-  const selectedDate = availableDates.includes(urlState.date)
-    ? urlState.date
-    : availableDates[0] || today
+  const selectedDate =
+    availableDates.includes(urlState.date) ? urlState.date : availableDates[0] || today
 
   // Find movie by slug
-  const selectedMovie = urlState.movieSlug
-    ? movies.find(m => m.slug === urlState.movieSlug) || null
-    : null
+  const selectedMovie =
+    urlState.movieSlug ? movies.find(m => m.slug === urlState.movieSlug) || null : null
 
   // Filter movies that have showtimes on selected date
   const moviesForDate = useMemo(() => {
-    return movies.filter(movie =>
-      movie.showtimes.some(s => s.date === selectedDate)
-    )
+    return movies.filter(movie => movie.showtimes.some(s => s.date === selectedDate))
   }, [movies, selectedDate])
 
   // Redirect to today's date on initial load if at root
@@ -89,24 +85,30 @@ export default function App() {
     return () => window.removeEventListener("popstate", handlePopState)
   }, [])
 
-  const setSelectedDate = useCallback((date: string) => {
-    if (urlState.movieSlug) {
-      window.history.pushState({}, "", `/${date}/${encodeURIComponent(urlState.movieSlug)}`)
-    } else {
-      window.history.pushState({}, "", `/${date}`)
-    }
-    setUrlState(prev => ({ ...prev, date }))
-  }, [urlState.movieSlug])
+  const setSelectedDate = useCallback(
+    (date: string) => {
+      if (urlState.movieSlug) {
+        window.history.pushState({}, "", `/${date}/${encodeURIComponent(urlState.movieSlug)}`)
+      } else {
+        window.history.pushState({}, "", `/${date}`)
+      }
+      setUrlState(prev => ({ ...prev, date }))
+    },
+    [urlState.movieSlug],
+  )
 
-  const selectMovie = useCallback((movie: Movie | null) => {
-    if (movie) {
-      window.history.pushState({}, "", `/${selectedDate}/${encodeURIComponent(movie.slug)}`)
-      setUrlState(prev => ({ ...prev, movieSlug: movie.slug }))
-    } else {
-      window.history.pushState({}, "", `/${selectedDate}`)
-      setUrlState(prev => ({ ...prev, movieSlug: null }))
-    }
-  }, [selectedDate])
+  const selectMovie = useCallback(
+    (movie: Movie | null) => {
+      if (movie) {
+        window.history.pushState({}, "", `/${selectedDate}/${encodeURIComponent(movie.slug)}`)
+        setUrlState(prev => ({ ...prev, movieSlug: movie.slug }))
+      } else {
+        window.history.pushState({}, "", `/${selectedDate}`)
+        setUrlState(prev => ({ ...prev, movieSlug: null }))
+      }
+    },
+    [selectedDate],
+  )
 
   if (selectedMovie) {
     return (
@@ -121,16 +123,16 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
+      <header className="bg-background/95 sticky top-0 z-10 border-b backdrop-blur">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Film className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">Vose-Flix</h1>
-              <span className="hidden sm:inline text-sm text-muted-foreground">
-                Non-dubbed movies in Barcelona
+              <Film className="text-primary h-6 w-6" />
+              <h1 className="text-xl font-bold">VOSEflix</h1>
+              <span className="text-muted-foreground hidden text-sm sm:inline">
+                Barcelona movies with the original audio
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -139,7 +141,13 @@ export default function App() {
                 selectedDate={selectedDate}
                 onDateChange={setSelectedDate}
               />
-              <Button variant="outline" size="sm" onClick={refresh} disabled={loading} className="gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refresh}
+                disabled={loading}
+                className="gap-2"
+              >
                 <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
@@ -151,14 +159,14 @@ export default function App() {
       {/* Main content */}
       <main className="container mx-auto px-4 py-6">
         {error && (
-          <div className="mb-6 rounded-lg bg-destructive/10 p-4 text-destructive">
+          <div className="bg-destructive/10 text-destructive mb-6 rounded-lg p-4">
             <p className="font-medium">Error loading movies</p>
             <p className="text-sm">{error}</p>
           </div>
         )}
 
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {loading ? "Loading movies..." : `${moviesForDate.length} movies showing`}
           </p>
         </div>
@@ -167,21 +175,19 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-6 text-center text-sm text-muted-foreground">
+      <footer className="text-muted-foreground border-t py-6 text-center text-sm">
         <p>
           Data from{" "}
           <a
             href="https://englishcinemabarcelona.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-foreground"
+            className="hover:text-foreground underline"
           >
             English Cinema Barcelona
           </a>
         </p>
-        <p className="mt-1">
-          Ratings from Rotten Tomatoes, Metacritic, and IMDB
-        </p>
+        <p className="mt-1">Ratings from Rotten Tomatoes, Metacritic, and IMDB</p>
       </footer>
     </div>
   )
