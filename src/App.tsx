@@ -238,6 +238,7 @@ export default function App() {
         onTimeRangeChange={setTimeRange}
         loading={loading}
         onRefresh={refresh}
+        onBack={() => selectMovie(null)}
       />
     )
   }

@@ -17,6 +17,7 @@ interface HeaderProps {
   onTimeRangeChange: (value: [number, number]) => void
   loading: boolean
   onRefresh: () => void
+  onLogoClick?: () => void
 }
 
 export function Header({
@@ -32,17 +33,21 @@ export function Header({
   onTimeRangeChange,
   loading,
   onRefresh,
+  onLogoClick,
 }: HeaderProps) {
   return (
     <header className="bg-background/95 sticky top-0 z-10 backdrop-blur sm:border-b">
       <div className="container mx-auto flex flex-wrap items-center gap-x-4 px-4 py-3 sm:py-4">
-        <div className="flex items-center gap-2">
+        <button
+          onClick={onLogoClick}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <Film className="text-primary h-6 w-6" />
           <h1 className="text-xl font-bold">VOSEflix</h1>
           <span className="text-muted-foreground hidden text-sm sm:inline">
             Barcelona movies with the original audio
           </span>
-        </div>
+        </button>
         <div className="order-last mt-3 flex w-full items-center justify-between gap-4 border-t pt-3 sm:order-none sm:m-0 sm:ml-auto sm:w-auto sm:justify-start sm:border-0 sm:p-0">
           <DateSelector
             availableDates={availableDates}

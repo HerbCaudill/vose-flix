@@ -21,6 +21,7 @@ interface MovieDetailProps {
   onTimeRangeChange: (value: [number, number]) => void
   loading: boolean
   onRefresh: () => void
+  onBack: () => void
 }
 
 export function MovieDetail({
@@ -37,6 +38,7 @@ export function MovieDetail({
   onTimeRangeChange,
   loading,
   onRefresh,
+  onBack,
 }: MovieDetailProps) {
   const { ratings } = movie
 
@@ -70,6 +72,7 @@ export function MovieDetail({
         onTimeRangeChange={onTimeRangeChange}
         loading={loading}
         onRefresh={onRefresh}
+        onLogoClick={onBack}
       />
 
       <div className="container mx-auto px-4 py-4">
