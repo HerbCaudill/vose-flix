@@ -28,7 +28,7 @@ export function DateSelector({ availableDates, selectedDate, onDateChange }: Dat
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
-      <span className="min-w-[120px] text-center font-medium">
+      <span className="text-center font-medium">
         {formatDateLabel(selectedDate)}
       </span>
       <Button

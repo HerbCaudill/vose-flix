@@ -207,7 +207,7 @@ export default function App() {
               Barcelona movies with the original audio
             </span>
           </div>
-          <div className="order-last w-full border-t pt-3 mt-3 flex items-center gap-4 sm:order-none sm:ml-auto sm:w-auto sm:border-0 sm:p-0 sm:m-0">
+          <div className="order-last w-full border-t pt-3 mt-3 flex items-center justify-between sm:justify-start gap-4 sm:order-none sm:ml-auto sm:w-auto sm:border-0 sm:p-0 sm:m-0">
             <DateSelector
               availableDates={availableDates}
               selectedDate={selectedDate}
