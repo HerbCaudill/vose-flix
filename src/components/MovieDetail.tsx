@@ -84,7 +84,7 @@ export function MovieDetail({
               <img
                 src={movie.posterUrl}
                 alt={movie.title}
-                className="w-full rounded-lg shadow-lg"
+                className="max-h-80 w-auto rounded-lg shadow-lg md:max-h-none md:w-full"
               />
             : <div className="bg-muted flex aspect-[2/3] items-center justify-center rounded-lg">
                 No poster
