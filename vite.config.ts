@@ -13,8 +13,8 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "Vose-Flix",
-        short_name: "vose-flix",
+        name: "VOSEflix",
+        short_name: "VOSEflix",
         start_url: "/",
         display: "standalone",
         background_color: "#0f0f0f",
