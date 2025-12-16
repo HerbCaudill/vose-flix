@@ -3,7 +3,7 @@ import { useMovies } from "@/hooks/useMovies"
 import { MovieGrid } from "@/components/MovieGrid"
 import { MovieDetail } from "@/components/MovieDetail"
 import { DateSelector } from "@/components/DateSelector"
-import { ScoreFilter } from "@/components/ScoreFilter"
+import { FilterMenu } from "@/components/FilterMenu"
 import { Button } from "@/components/ui/button"
 import type { Movie } from "@/types"
 import { calculateNormalizedScore } from "@/lib/calculateNormalizedScore"
@@ -149,7 +149,7 @@ export default function App() {
               selectedDate={selectedDate}
               onDateChange={setSelectedDate}
             />
-            <ScoreFilter value={minScore} onChange={setMinScore} />
+            <FilterMenu minScore={minScore} onMinScoreChange={setMinScore} />
           </div>
           <Button
             variant="outline"
