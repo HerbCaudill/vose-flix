@@ -218,6 +218,7 @@ export default function App() {
         window.history.pushState({}, "", `/${selectedDate}`)
         setUrlState(prev => ({ ...prev, movieSlug: null }))
       }
+      window.scrollTo(0, 0)
     },
     [selectedDate],
   )
