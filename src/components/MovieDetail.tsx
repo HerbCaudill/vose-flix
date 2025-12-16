@@ -3,6 +3,7 @@ import { DateSelector } from "@/components/DateSelector"
 import { MovieMeta } from "@/components/MovieMeta"
 import { MpaaRatingBadge } from "@/components/MpaaRatingBadge"
 import { RatingDisplay } from "@/components/RatingDisplay"
+import { ShowtimesList } from "@/components/ShowtimesList"
 import type { Movie } from "@/types"
 import { ArrowLeft, Award, DollarSign, Globe, Trophy, Users, Video } from "lucide-react"
 import { formatDateLabel } from "@/lib/formatDateLabel"
@@ -24,10 +25,8 @@ export function MovieDetail({
 }: MovieDetailProps) {
   const { ratings } = movie
 
-  // Filter and sort showtimes for selected date
-  const filteredShowtimes = movie.showtimes
-    .filter(s => s.date === selectedDate)
-    .sort((a, b) => a.time.localeCompare(b.time))
+  // Filter showtimes for selected date
+  const filteredShowtimes = movie.showtimes.filter(s => s.date === selectedDate)
 
   return (
     <div className="bg-background min-h-screen">
@@ -174,27 +173,10 @@ export function MovieDetail({
             onDateChange={onDateChange}
           />
         </div>
-        {filteredShowtimes.length === 0 ?
-          <p className="text-muted-foreground">
-            No showtimes available for {formatDateLabel(selectedDate).toLowerCase()}
-          </p>
-        : <div className="flex flex-col gap-2">
-            {filteredShowtimes.map((showtime, i) => (
-              <a
-                key={i}
-                href={showtime.bookingUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-fit"
-              >
-                <Button variant="outline" size="sm" className="gap-2">
-                  <span className="font-semibold">{showtime.time}</span>
-                  <span className="text-muted-foreground">{showtime.cinema.name}</span>
-                </Button>
-              </a>
-            ))}
-          </div>
-        }
+        <ShowtimesList
+          showtimes={filteredShowtimes}
+          emptyMessage={`No showtimes available for ${formatDateLabel(selectedDate).toLowerCase()}`}
+        />
 
         {/* Trailer */}
         {movie.trailerKey && (
