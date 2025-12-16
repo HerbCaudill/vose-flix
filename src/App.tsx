@@ -3,8 +3,10 @@ import { useMovies } from "@/hooks/useMovies"
 import { MovieGrid } from "@/components/MovieGrid"
 import { MovieDetail } from "@/components/MovieDetail"
 import { DateSelector } from "@/components/DateSelector"
+import { ScoreFilter } from "@/components/ScoreFilter"
 import { Button } from "@/components/ui/button"
 import type { Movie } from "@/types"
+import { calculateNormalizedScore } from "@/lib/calculateNormalizedScore"
 import { RefreshCw, Film } from "lucide-react"
 
 function getToday(): string {
@@ -39,6 +41,7 @@ function getStateFromUrl(): { movieSlug: string | null; date: string } {
 export default function App() {
   const { movies, loading, error, refresh } = useMovies()
   const [urlState, setUrlState] = useState(getStateFromUrl)
+  const [minScore, setMinScore] = useState<number | null>(null)
 
   // Get all available dates from all movies
   const today = getToday()
@@ -62,10 +65,16 @@ export default function App() {
   const selectedMovie =
     urlState.movieSlug ? movies.find(m => m.slug === urlState.movieSlug) || null : null
 
-  // Filter movies that have showtimes on selected date
+  // Filter movies that have showtimes on selected date and meet minimum score
   const moviesForDate = useMemo(() => {
-    return movies.filter(movie => movie.showtimes.some(s => s.date === selectedDate))
-  }, [movies, selectedDate])
+    return movies.filter(movie => {
+      const hasShowtimes = movie.showtimes.some(s => s.date === selectedDate)
+      if (!hasShowtimes) return false
+      if (minScore === null) return true
+      const score = calculateNormalizedScore(movie.ratings)
+      return score !== null && score >= minScore
+    })
+  }, [movies, selectedDate, minScore])
 
   // Redirect to today's date on initial load if at root
   useEffect(() => {
@@ -134,12 +143,13 @@ export default function App() {
               Barcelona movies with the original audio
             </span>
           </div>
-          <div className="order-last w-full border-t pt-3 mt-3 sm:order-none sm:ml-auto sm:w-auto sm:border-0 sm:p-0 sm:m-0">
+          <div className="order-last w-full border-t pt-3 mt-3 flex items-center gap-4 sm:order-none sm:ml-auto sm:w-auto sm:border-0 sm:p-0 sm:m-0">
             <DateSelector
               availableDates={availableDates}
               selectedDate={selectedDate}
               onDateChange={setSelectedDate}
             />
+            <ScoreFilter value={minScore} onChange={setMinScore} />
           </div>
           <Button
             variant="outline"
