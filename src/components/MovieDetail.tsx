@@ -4,8 +4,16 @@ import { MpaaRatingBadge } from "@/components/MpaaRatingBadge"
 import { RatingDisplay } from "@/components/RatingDisplay"
 import { ShowtimesList } from "@/components/ShowtimesList"
 import type { Cinema, Movie } from "@/types"
-import { Award, DollarSign, Globe, Trophy, Users, Video } from "lucide-react"
+import { Trophy } from "lucide-react"
 import { formatDateLabel } from "@/lib/formatDateLabel"
+
+function formatNameList(names: string): string {
+  const list = names.split(", ").map(n => n.trim()).filter(Boolean)
+  if (list.length === 0) return ""
+  if (list.length === 1) return list[0]
+  if (list.length === 2) return `${list[0]} and ${list[1]}`
+  return `${list.slice(0, -1).join(", ")}, and ${list[list.length - 1]}`
+}
 
 interface MovieDetailProps {
   movie: Movie
@@ -136,58 +144,36 @@ export function MovieDetail({
               <p className="text-muted-foreground mb-4">{movie.plot}</p>
             )}
 
-            {/* Cast & Crew */}
-            <div className="mb-4 space-y-2 text-sm">
-              {movie.director && (
-                <div className="flex gap-2">
-                  <Video className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
-                  <span>
-                    <span className="text-muted-foreground">Director:</span>{" "}
-                    {movie.director}
+            {/* MPAA Rating & Country/Language */}
+            {(movie.rated || movie.country || movie.language) && (
+              <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
+                {movie.rated && <MpaaRatingBadge rated={movie.rated} />}
+                {(movie.country || movie.language) && (
+                  <span className="text-muted-foreground">
+                    {movie.country}
+                    {movie.country && movie.language && " "}
+                    {movie.language && `(${movie.language})`}
                   </span>
-                </div>
-              )}
-              {movie.writer && (
-                <div className="flex gap-2">
-                  <Award className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
-                  <span>
-                    <span className="text-muted-foreground">Writer:</span>{" "}
-                    {movie.writer}
-                  </span>
-                </div>
-              )}
-              {movie.actors && (
-                <div className="flex gap-2">
-                  <Users className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
-                  <span>
-                    <span className="text-muted-foreground">Cast:</span>{" "}
-                    {movie.actors}
-                  </span>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
-            {/* Additional Info */}
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-              {movie.rated && <MpaaRatingBadge rated={movie.rated} />}
-              {movie.language && (
-                <span className="flex items-center gap-1">
-                  <Globe className="text-muted-foreground h-3 w-3" />
-                  {movie.language}
-                </span>
-              )}
-              {movie.country && (
-                <span>
-                  <span className="text-muted-foreground">Country:</span> {movie.country}
-                </span>
-              )}
-              {movie.boxOffice && (
-                <span className="flex items-center gap-1">
-                  <DollarSign className="text-muted-foreground h-3 w-3" />
-                  {movie.boxOffice}
-                </span>
-              )}
-            </div>
+            {/* Cast & Crew */}
+            {(movie.actors || movie.director) && (
+              <p className="mb-4 text-sm">
+                {movie.actors && (
+                  <>
+                    <span className="text-muted-foreground">Starring</span> {formatNameList(movie.actors)}.
+                  </>
+                )}
+                {movie.actors && movie.director && " "}
+                {movie.director && (
+                  <>
+                    <span className="text-muted-foreground">Directed by</span> {formatNameList(movie.director)}.
+                  </>
+                )}
+              </p>
+            )}
 
             {/* Awards */}
             {movie.awards && movie.awards !== "N/A" && (
