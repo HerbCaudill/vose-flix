@@ -3,18 +3,28 @@ import { MovieMeta } from "@/components/MovieMeta"
 import { ShowtimesList } from "@/components/ShowtimesList"
 import type { Movie } from "@/types"
 
+function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number)
+  return hours * 60 + minutes
+}
+
 interface MovieCardProps {
   movie: Movie
   onClick?: () => void
   selectedDate: string
   selectedCinemas: Set<string>
+  timeRange: [number, number]
 }
 
-export function MovieCard({ movie, onClick, selectedDate, selectedCinemas }: MovieCardProps) {
-  // Get showtimes for the selected date and cinemas
-  const filteredShowtimes = movie.showtimes.filter(
-    s => s.date === selectedDate && selectedCinemas.has(s.cinema.id)
-  )
+export function MovieCard({ movie, onClick, selectedDate, selectedCinemas, timeRange }: MovieCardProps) {
+  // Get showtimes for the selected date, cinemas, and time range
+  const filteredShowtimes = movie.showtimes.filter(s => {
+    if (s.date !== selectedDate) return false
+    if (!selectedCinemas.has(s.cinema.id)) return false
+    const startMinutes = timeToMinutes(s.time)
+    const endMinutes = startMinutes + movie.duration
+    return startMinutes >= timeRange[0] && endMinutes <= timeRange[1]
+  })
 
   return (
     <Card

@@ -10,12 +10,23 @@ import { Slider } from "@/components/ui/slider"
 import type { Cinema } from "@/types"
 import { SlidersHorizontal } from "lucide-react"
 
+// Default time range: 12:00 (720 min) to 24:00 (1440 min)
+const DEFAULT_TIME_RANGE: [number, number] = [720, 1440]
+
+function formatTime(minutes: number): string {
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`
+}
+
 interface FilterMenuProps {
   minScore: number | null
   onMinScoreChange: (value: number | null) => void
   cinemas: Cinema[]
   selectedCinemas: Set<string>
   onSelectedCinemasChange: (cinemas: Set<string>) => void
+  timeRange: [number, number]
+  onTimeRangeChange: (value: [number, number]) => void
 }
 
 export function FilterMenu({
@@ -24,10 +35,16 @@ export function FilterMenu({
   cinemas,
   selectedCinemas,
   onSelectedCinemasChange,
+  timeRange,
+  onTimeRangeChange,
 }: FilterMenuProps) {
+  const isDefaultTimeRange =
+    timeRange[0] === DEFAULT_TIME_RANGE[0] && timeRange[1] === DEFAULT_TIME_RANGE[1]
+
   const activeFilterCount =
     (minScore !== null ? 1 : 0) +
-    (selectedCinemas.size < cinemas.length && selectedCinemas.size > 0 ? 1 : 0)
+    (selectedCinemas.size < cinemas.length && selectedCinemas.size > 0 ? 1 : 0) +
+    (!isDefaultTimeRange ? 1 : 0)
 
   const toggleCinema = (cinemaId: string) => {
     const newSelection = new Set(selectedCinemas)
@@ -40,7 +57,6 @@ export function FilterMenu({
   }
 
   const allSelected = selectedCinemas.size === cinemas.length
-  const noneSelected = selectedCinemas.size === 0
 
   const toggleAll = () => {
     if (allSelected) {
@@ -77,6 +93,24 @@ export function FilterMenu({
             min={0}
             max={90}
             step={10}
+          />
+        </div>
+
+        <DropdownMenuSeparator />
+
+        <div className="p-3 space-y-3">
+          <div className="space-y-1">
+            <span className="text-sm font-medium">Time window</span>
+            <div className="text-muted-foreground text-sm">
+              Starts by <span className="font-semibold">{formatTime(timeRange[0])}</span>, ends by <span className="font-semibold">{formatTime(timeRange[1])}</span>
+            </div>
+          </div>
+          <Slider
+            value={timeRange}
+            onValueChange={v => onTimeRangeChange(v as [number, number])}
+            min={720}
+            max={1440}
+            step={30}
           />
         </div>
 

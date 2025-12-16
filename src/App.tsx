@@ -40,6 +40,10 @@ function getStateFromUrl(): { movieSlug: string | null; date: string } {
 
 const STORAGE_KEY_MIN_SCORE = "voseflix-minScore"
 const STORAGE_KEY_CINEMAS = "voseflix-selectedCinemas"
+const STORAGE_KEY_TIME_RANGE = "voseflix-timeRange"
+
+// Default time range: 12:00 (720 min) to 24:00 (1440 min)
+const DEFAULT_TIME_RANGE: [number, number] = [720, 1440]
 
 function loadMinScore(): number | null {
   const stored = localStorage.getItem(STORAGE_KEY_MIN_SCORE)
@@ -62,11 +66,32 @@ function loadSelectedCinemas(): Set<string> | null {
   return null
 }
 
+function loadTimeRange(): [number, number] | null {
+  const stored = localStorage.getItem(STORAGE_KEY_TIME_RANGE)
+  if (stored === null) return null
+  try {
+    const parsed = JSON.parse(stored)
+    if (Array.isArray(parsed) && parsed.length === 2) {
+      return [parsed[0], parsed[1]]
+    }
+  } catch {
+    // Invalid JSON, return null
+  }
+  return null
+}
+
+// Convert "HH:MM" to minutes from midnight
+function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number)
+  return hours * 60 + minutes
+}
+
 export default function App() {
   const { movies, loading, error, refresh } = useMovies()
   const [urlState, setUrlState] = useState(getStateFromUrl)
   const [minScore, setMinScore] = useState<number | null>(loadMinScore)
   const [selectedCinemas, setSelectedCinemas] = useState<Set<string>>(() => loadSelectedCinemas() ?? new Set())
+  const [timeRange, setTimeRange] = useState<[number, number]>(() => loadTimeRange() ?? DEFAULT_TIME_RANGE)
 
   // Get all unique cinemas from movies
   const allCinemas = useMemo(() => {
@@ -104,6 +129,15 @@ export default function App() {
     }
   }, [selectedCinemas])
 
+  // Persist timeRange to localStorage
+  useEffect(() => {
+    if (timeRange[0] === DEFAULT_TIME_RANGE[0] && timeRange[1] === DEFAULT_TIME_RANGE[1]) {
+      localStorage.removeItem(STORAGE_KEY_TIME_RANGE)
+    } else {
+      localStorage.setItem(STORAGE_KEY_TIME_RANGE, JSON.stringify(timeRange))
+    }
+  }, [timeRange])
+
   // Get all available dates from all movies
   const today = getToday()
   const availableDates = useMemo(() => {
@@ -126,19 +160,23 @@ export default function App() {
   const selectedMovie =
     urlState.movieSlug ? movies.find(m => m.slug === urlState.movieSlug) || null : null
 
-  // Filter movies that have showtimes on selected date, meet minimum score, and are at selected cinemas
+  // Filter movies that have showtimes on selected date, meet minimum score, are at selected cinemas, and within time range
   const moviesForDate = useMemo(() => {
     return movies.filter(movie => {
-      // Check if movie has showtimes on selected date at selected cinemas
-      const hasShowtimes = movie.showtimes.some(
-        s => s.date === selectedDate && selectedCinemas.has(s.cinema.id)
-      )
+      // Check if movie has showtimes on selected date at selected cinemas within time range
+      const hasShowtimes = movie.showtimes.some(s => {
+        if (s.date !== selectedDate) return false
+        if (!selectedCinemas.has(s.cinema.id)) return false
+        const startMinutes = timeToMinutes(s.time)
+        const endMinutes = startMinutes + movie.duration
+        return startMinutes >= timeRange[0] && endMinutes <= timeRange[1]
+      })
       if (!hasShowtimes) return false
       if (minScore === null) return true
       const score = calculateNormalizedScore(movie.ratings)
       return score !== null && score >= minScore
     })
-  }, [movies, selectedDate, minScore, selectedCinemas])
+  }, [movies, selectedDate, minScore, selectedCinemas, timeRange])
 
   // Redirect to today's date on initial load if at root
   useEffect(() => {
@@ -219,6 +257,8 @@ export default function App() {
               cinemas={allCinemas}
               selectedCinemas={selectedCinemas}
               onSelectedCinemasChange={setSelectedCinemas}
+              timeRange={timeRange}
+              onTimeRangeChange={setTimeRange}
             />
           </div>
           <Button
@@ -249,7 +289,7 @@ export default function App() {
           </p>
         </div>
 
-        <MovieGrid movies={moviesForDate} loading={loading} onMovieClick={selectMovie} selectedDate={selectedDate} selectedCinemas={selectedCinemas} />
+        <MovieGrid movies={moviesForDate} loading={loading} onMovieClick={selectMovie} selectedDate={selectedDate} selectedCinemas={selectedCinemas} timeRange={timeRange} />
       </main>
 
       {/* Footer */}
