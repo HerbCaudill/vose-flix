@@ -179,12 +179,12 @@ export default function App() {
     })
   }, [movies, selectedDate, minScore, selectedCinemas, timeRange])
 
-  // Redirect to today's date on initial load if at root
+  // Update URL to reflect today's date (but don't redirect if at root for PWA compatibility)
   useEffect(() => {
     if (window.location.pathname === "/" && availableDates.length > 0) {
       const targetDate = availableDates.includes(today) ? today : availableDates[0]
-      window.history.replaceState({}, "", `/${targetDate}`)
-      setUrlState({ movieSlug: null, date: targetDate })
+      // Only update state, don't change URL - keeps "/" for PWA home screen
+      setUrlState(prev => prev.date !== targetDate ? { ...prev, date: targetDate } : prev)
     }
   }, [availableDates, today])
 
