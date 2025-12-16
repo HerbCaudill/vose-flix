@@ -3,6 +3,7 @@ import type { Movie } from "@/types"
 import { fetchMovieList } from "@/lib/fetchMovieList"
 import { fetchMovieDetails } from "@/lib/fetchMovieDetails"
 import { fetchOmdbData } from "@/lib/fetchOmdbData"
+import { fetchTmdbTrailer } from "@/lib/fetchTmdbTrailer"
 import { getCachedMovies, setCachedMovies } from "@/lib/moviesCache"
 import { sortMovies } from "@/lib/sortMovies"
 
@@ -99,9 +100,15 @@ export function useMovies(): UseMoviesResult {
               if (omdbData.imdb?.id) {
                 details.imdbId = omdbData.imdb.id
               }
+
+              // Fetch trailer from TMDB
+              const trailerKey = await fetchTmdbTrailer(details.title, details.year)
+              if (trailerKey) {
+                details.trailerKey = trailerKey
+              }
             }
             return details
-          })
+          }),
         )
 
         for (const movie of results) {

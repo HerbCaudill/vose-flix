@@ -20,6 +20,7 @@ export interface Movie {
   awards?: string
   boxOffice?: string
   imdbId?: string
+  trailerKey?: string // YouTube video ID
 }
 
 export interface Ratings {

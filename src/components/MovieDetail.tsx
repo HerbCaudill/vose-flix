@@ -233,6 +233,22 @@ export function MovieDetail({
             ))}
           </div>
         }
+
+        {/* Trailer */}
+        {movie.trailerKey && (
+          <div className="mt-6">
+            <h2 className="mb-4 text-2xl font-bold">Trailer</h2>
+            <div className="aspect-video w-full max-w-3xl overflow-hidden rounded-lg">
+              <iframe
+                src={`https://www.youtube.com/embed/${movie.trailerKey}`}
+                title={`${movie.title} trailer`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="h-full w-full"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
