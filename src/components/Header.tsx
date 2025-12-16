@@ -40,12 +40,12 @@ export function Header({
       <div className="container mx-auto flex flex-wrap items-center gap-x-4 px-4 py-3 sm:py-4">
         <button
           onClick={onLogoClick}
-          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2 transition-opacity hover:opacity-80"
         >
           <Film className="text-primary h-6 w-6" />
           <h1 className="text-xl font-bold">VOSEflix</h1>
           <span className="text-muted-foreground hidden text-sm sm:inline">
-            Barcelona movies with the original audio
+            Barcelona movies with original audio
           </span>
         </button>
         <div className="order-last mt-3 flex w-full items-center justify-between gap-4 border-t pt-3 sm:order-none sm:m-0 sm:ml-auto sm:w-auto sm:justify-start sm:border-0 sm:p-0">
