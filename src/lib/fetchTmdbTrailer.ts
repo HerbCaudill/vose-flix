@@ -17,10 +17,7 @@ interface TmdbVideosResult {
   }>
 }
 
-export async function fetchTmdbTrailer(
-  title: string,
-  year?: number
-): Promise<string | null> {
+export async function fetchTmdbTrailer(title: string, year?: number): Promise<string | null> {
   try {
     // Search for the movie
     const searchParams = new URLSearchParams({
@@ -32,6 +29,7 @@ export async function fetchTmdbTrailer(
     const searchUrl = `https://api.themoviedb.org/3/search/movie?${searchParams}`
     const searchResponse = await fetch(searchUrl)
     const searchData: TmdbSearchResult = await searchResponse.json()
+    console.log(searchData)
 
     if (!searchData.results || searchData.results.length === 0) {
       return null
@@ -53,9 +51,7 @@ export async function fetchTmdbTrailer(
     const youtubeVideos = videosData.results.filter(v => v.site === "YouTube")
 
     // Priority: Official Trailer > Trailer > Teaser > any video
-    const officialTrailer = youtubeVideos.find(
-      v => v.type === "Trailer" && v.official
-    )
+    const officialTrailer = youtubeVideos.find(v => v.type === "Trailer" && v.official)
     if (officialTrailer) return officialTrailer.key
 
     const trailer = youtubeVideos.find(v => v.type === "Trailer")

@@ -4,7 +4,9 @@ import { fetchMovieList } from "@/lib/fetchMovieList"
 import { fetchMovieDetails } from "@/lib/fetchMovieDetails"
 import { fetchOmdbData } from "@/lib/fetchOmdbData"
 import { fetchTmdbTrailer } from "@/lib/fetchTmdbTrailer"
-import { getCachedMovies, setCachedMovies } from "@/lib/moviesCache"
+import { getCachedMovies, setCachedMovies, clearMoviesCache } from "@/lib/moviesCache"
+import { clearOmdbCache } from "@/lib/omdbCache"
+import { clearHtmlCache } from "@/lib/htmlCache"
 import { sortMovies } from "@/lib/sortMovies"
 
 interface UseMoviesResult {
@@ -130,9 +132,16 @@ export function useMovies(): UseMoviesResult {
     }
   }, [])
 
+  const refresh = useCallback(() => {
+    clearMoviesCache()
+    clearOmdbCache()
+    clearHtmlCache()
+    loadMovies()
+  }, [loadMovies])
+
   useEffect(() => {
     loadMovies()
   }, [loadMovies])
 
-  return { movies, loading, error, refresh: loadMovies }
+  return { movies, loading, error, refresh }
 }

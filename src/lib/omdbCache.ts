@@ -53,3 +53,11 @@ export function setCachedOmdbData(title: string, data: OmdbData): void {
   }
   setCache(cache)
 }
+
+export function clearOmdbCache(): void {
+  try {
+    localStorage.removeItem(CACHE_KEY)
+  } catch {
+    // Ignore storage errors
+  }
+}

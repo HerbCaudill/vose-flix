@@ -31,3 +31,11 @@ export function setCachedMovies(movies: Movie[]): void {
     // Ignore storage errors
   }
 }
+
+export function clearMoviesCache(): void {
+  try {
+    localStorage.removeItem(MOVIES_CACHE_KEY)
+  } catch {
+    // Ignore storage errors
+  }
+}

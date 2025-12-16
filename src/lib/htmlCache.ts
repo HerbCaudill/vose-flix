@@ -47,3 +47,11 @@ export function setCachedHtml(url: string, html: string): void {
   }
   setCache(cache)
 }
+
+export function clearHtmlCache(): void {
+  try {
+    localStorage.removeItem(CACHE_KEY)
+  } catch {
+    // Ignore storage errors
+  }
+}
