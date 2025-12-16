@@ -1,11 +1,10 @@
-import { Button } from "@/components/ui/button"
-import { DateSelector } from "@/components/DateSelector"
+import { Header } from "@/components/Header"
 import { MovieMeta } from "@/components/MovieMeta"
 import { MpaaRatingBadge } from "@/components/MpaaRatingBadge"
 import { RatingDisplay } from "@/components/RatingDisplay"
 import { ShowtimesList } from "@/components/ShowtimesList"
-import type { Movie } from "@/types"
-import { ArrowLeft, Award, DollarSign, Globe, Trophy, Users, Video } from "lucide-react"
+import type { Cinema, Movie } from "@/types"
+import { Award, DollarSign, Globe, Trophy, Users, Video } from "lucide-react"
 import { formatDateLabel } from "@/lib/formatDateLabel"
 
 interface MovieDetailProps {
@@ -13,7 +12,15 @@ interface MovieDetailProps {
   selectedDate: string
   availableDates: string[]
   onDateChange: (date: string) => void
-  onBack: () => void
+  minScore: number | null
+  onMinScoreChange: (value: number | null) => void
+  cinemas: Cinema[]
+  selectedCinemas: Set<string>
+  onSelectedCinemasChange: (cinemas: Set<string>) => void
+  timeRange: [number, number]
+  onTimeRangeChange: (value: [number, number]) => void
+  loading: boolean
+  onRefresh: () => void
 }
 
 export function MovieDetail({
@@ -21,24 +28,49 @@ export function MovieDetail({
   selectedDate,
   availableDates,
   onDateChange,
-  onBack,
+  minScore,
+  onMinScoreChange,
+  cinemas,
+  selectedCinemas,
+  onSelectedCinemasChange,
+  timeRange,
+  onTimeRangeChange,
+  loading,
+  onRefresh,
 }: MovieDetailProps) {
   const { ratings } = movie
 
-  // Filter showtimes for selected date
-  const filteredShowtimes = movie.showtimes.filter(s => s.date === selectedDate)
+  // Convert "HH:MM" to minutes from midnight
+  const timeToMinutes = (time: string): number => {
+    const [hours, minutes] = time.split(":").map(Number)
+    return hours * 60 + minutes
+  }
+
+  // Filter showtimes for selected date, selected cinemas, and time range
+  const filteredShowtimes = movie.showtimes.filter(s => {
+    if (s.date !== selectedDate) return false
+    if (!selectedCinemas.has(s.cinema.id)) return false
+    const startMinutes = timeToMinutes(s.time)
+    const endMinutes = startMinutes + movie.duration
+    return startMinutes >= timeRange[0] && endMinutes <= timeRange[1]
+  })
 
   return (
     <div className="bg-background min-h-screen">
-      {/* Header */}
-      <div className="bg-background/95 sticky top-0 z-10 border-b backdrop-blur">
-        <div className="container mx-auto px-4 py-3">
-          <Button variant="ghost" onClick={onBack} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-        </div>
-      </div>
+      <Header
+        availableDates={availableDates}
+        selectedDate={selectedDate}
+        onDateChange={onDateChange}
+        minScore={minScore}
+        onMinScoreChange={onMinScoreChange}
+        cinemas={cinemas}
+        selectedCinemas={selectedCinemas}
+        onSelectedCinemasChange={onSelectedCinemasChange}
+        timeRange={timeRange}
+        onTimeRangeChange={onTimeRangeChange}
+        loading={loading}
+        onRefresh={onRefresh}
+      />
 
       <div className="container mx-auto px-4 py-4">
         {/* Movie header */}
@@ -165,13 +197,8 @@ export function MovieDetail({
         </div>
 
         {/* Showtimes */}
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4">
           <h2 className="text-2xl font-bold">Showtimes</h2>
-          <DateSelector
-            availableDates={availableDates}
-            selectedDate={selectedDate}
-            onDateChange={onDateChange}
-          />
         </div>
         <ShowtimesList
           showtimes={filteredShowtimes}

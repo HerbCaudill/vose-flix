@@ -52,6 +52,9 @@ export function MovieCard({ movie, onClick, selectedDate, selectedCinemas, timeR
           duration={movie.duration}
           ratings={movie.ratings}
         />
+        {movie.plot && (
+          <p className="text-muted-foreground text-xs line-clamp-4 mt-2">{movie.plot}</p>
+        )}
         {filteredShowtimes.length > 0 && (
           <div className="mt-3">
             <ShowtimesList showtimes={filteredShowtimes} size="sm" />

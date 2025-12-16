@@ -2,12 +2,9 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { useMovies } from "@/hooks/useMovies"
 import { MovieGrid } from "@/components/MovieGrid"
 import { MovieDetail } from "@/components/MovieDetail"
-import { DateSelector } from "@/components/DateSelector"
-import { FilterMenu } from "@/components/FilterMenu"
-import { Button } from "@/components/ui/button"
+import { Header } from "@/components/Header"
 import type { Cinema, Movie } from "@/types"
 import { calculateNormalizedScore } from "@/lib/calculateNormalizedScore"
-import { RefreshCw, Film } from "lucide-react"
 
 function getToday(): string {
   return new Date().toISOString().split("T")[0]
@@ -232,51 +229,35 @@ export default function App() {
         selectedDate={selectedDate}
         availableDates={availableDates}
         onDateChange={setSelectedDate}
-        onBack={() => selectMovie(null)}
+        minScore={minScore}
+        onMinScoreChange={setMinScore}
+        cinemas={allCinemas}
+        selectedCinemas={selectedCinemas}
+        onSelectedCinemasChange={setSelectedCinemas}
+        timeRange={timeRange}
+        onTimeRangeChange={setTimeRange}
+        loading={loading}
+        onRefresh={refresh}
       />
     )
   }
 
   return (
     <div className="bg-background min-h-screen">
-      {/* Header */}
-      <header className="bg-background/95 sticky top-0 z-10 backdrop-blur sm:border-b">
-        <div className="container mx-auto flex flex-wrap items-center gap-x-4 px-4 py-3 sm:py-4">
-          <div className="flex items-center gap-2">
-            <Film className="text-primary h-6 w-6" />
-            <h1 className="text-xl font-bold">VOSEflix</h1>
-            <span className="text-muted-foreground hidden text-sm sm:inline">
-              Barcelona movies with the original audio
-            </span>
-          </div>
-          <div className="order-last mt-3 flex w-full items-center justify-between gap-4 border-t pt-3 sm:order-none sm:m-0 sm:ml-auto sm:w-auto sm:justify-start sm:border-0 sm:p-0">
-            <DateSelector
-              availableDates={availableDates}
-              selectedDate={selectedDate}
-              onDateChange={setSelectedDate}
-            />
-            <FilterMenu
-              minScore={minScore}
-              onMinScoreChange={setMinScore}
-              cinemas={allCinemas}
-              selectedCinemas={selectedCinemas}
-              onSelectedCinemasChange={setSelectedCinemas}
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refresh}
-            disabled={loading}
-            className="ml-auto gap-2 sm:ml-0"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </Button>
-        </div>
-      </header>
+      <Header
+        availableDates={availableDates}
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
+        minScore={minScore}
+        onMinScoreChange={setMinScore}
+        cinemas={allCinemas}
+        selectedCinemas={selectedCinemas}
+        onSelectedCinemasChange={setSelectedCinemas}
+        timeRange={timeRange}
+        onTimeRangeChange={setTimeRange}
+        loading={loading}
+        onRefresh={refresh}
+      />
 
       {/* Main content */}
       <main className="container mx-auto px-4 py-6">
