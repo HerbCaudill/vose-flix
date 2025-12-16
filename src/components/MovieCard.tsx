@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { MovieMeta } from "@/components/MovieMeta"
-import { groupShowtimesByCinema } from "@/lib/groupShowtimesByCinema"
 import type { Movie } from "@/types"
 
 interface MovieCardProps {
@@ -10,10 +9,11 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ movie, onClick }: MovieCardProps) {
-  // Get today's showtimes
+  // Get today's showtimes sorted by time
   const today = new Date().toISOString().split("T")[0]
-  const todayShowtimes = movie.showtimes.filter(s => s.date === today)
-  const showtimesByCinema = groupShowtimesByCinema(todayShowtimes)
+  const todayShowtimes = movie.showtimes
+    .filter(s => s.date === today)
+    .sort((a, b) => a.time.localeCompare(b.time))
 
   return (
     <Card
@@ -41,27 +41,22 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
           duration={movie.duration}
           ratings={movie.ratings}
         />
-        {showtimesByCinema.length > 0 && (
-          <div className="mt-3 space-y-2">
-            {showtimesByCinema.map(({ cinema, times }) => (
-              <div key={cinema.id}>
-                <div className="text-muted-foreground text-xs mb-1">{cinema.name}</div>
-                <div className="flex flex-wrap gap-1">
-                  {times.map((showtime, i) => (
-                    <a
-                      key={i}
-                      href={showtime.bookingUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <Button variant="outline" size="sm" className="h-6 px-2 text-xs">
-                        {showtime.time}
-                      </Button>
-                    </a>
-                  ))}
-                </div>
-              </div>
+        {todayShowtimes.length > 0 && (
+          <div className="mt-3 flex flex-col gap-1">
+            {todayShowtimes.map((showtime, i) => (
+              <a
+                key={i}
+                href={showtime.bookingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="w-fit"
+              >
+                <Button variant="outline" size="sm" className="h-6 px-2 text-xs gap-1">
+                  <span className="font-semibold">{showtime.time}</span>
+                  <span className="text-muted-foreground">{showtime.cinema.name}</span>
+                </Button>
+              </a>
             ))}
           </div>
         )}

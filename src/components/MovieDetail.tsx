@@ -1,38 +1,11 @@
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { DateSelector } from "@/components/DateSelector"
 import { MovieMeta } from "@/components/MovieMeta"
+import { MpaaRatingBadge } from "@/components/MpaaRatingBadge"
 import { RatingDisplay } from "@/components/RatingDisplay"
 import type { Movie } from "@/types"
-import { ArrowLeft, Award, DollarSign, Globe, MapPin, Trophy, Users, Video } from "lucide-react"
+import { ArrowLeft, Award, DollarSign, Globe, Trophy, Users, Video } from "lucide-react"
 import { formatDateLabel } from "@/lib/formatDateLabel"
-import { groupShowtimesByCinema } from "@/lib/groupShowtimesByCinema"
-
-function getMpaaRatingColor(rated: string): string {
-  switch (rated) {
-    case "G":
-      return "bg-green-600"
-    case "PG":
-      return "bg-blue-500"
-    case "PG-13":
-      return "bg-yellow-500 text-black"
-    case "R":
-      return "bg-red-600"
-    case "NC-17":
-      return "bg-purple-700"
-    default:
-      return "bg-gray-500"
-  }
-}
-
-function MpaaRatingBadge({ rated }: { rated: string }) {
-  return (
-    <Badge className={`${getMpaaRatingColor(rated)} text-xs font-bold shadow-md`}>
-      {rated}
-    </Badge>
-  )
-}
 
 interface MovieDetailProps {
   movie: Movie
@@ -51,11 +24,10 @@ export function MovieDetail({
 }: MovieDetailProps) {
   const { ratings } = movie
 
-  // Filter showtimes for selected date
-  const filteredShowtimes = movie.showtimes.filter(s => s.date === selectedDate)
-
-  // Group showtimes by cinema
-  const showtimesByCinema = groupShowtimesByCinema(filteredShowtimes)
+  // Filter and sort showtimes for selected date
+  const filteredShowtimes = movie.showtimes
+    .filter(s => s.date === selectedDate)
+    .sort((a, b) => a.time.localeCompare(b.time))
 
   return (
     <div className="bg-background min-h-screen">
@@ -202,34 +174,24 @@ export function MovieDetail({
             onDateChange={onDateChange}
           />
         </div>
-        {showtimesByCinema.length === 0 ?
+        {filteredShowtimes.length === 0 ?
           <p className="text-muted-foreground">
             No showtimes available for {formatDateLabel(selectedDate).toLowerCase()}
           </p>
-        : <div className="flex gap-4 overflow-x-auto pb-2">
-            {showtimesByCinema.map(({ cinema, times }) => (
-              <Card key={cinema.id} className="shrink-0">
-                <CardContent className="p-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    <MapPin className="text-muted-foreground h-4 w-4" />
-                    <span className="font-medium">{cinema.name}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {times.map((showtime, i) => (
-                      <a
-                        key={i}
-                        href={showtime.bookingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Button variant="outline" size="sm">
-                          {showtime.time}
-                        </Button>
-                      </a>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+        : <div className="flex flex-col gap-2">
+            {filteredShowtimes.map((showtime, i) => (
+              <a
+                key={i}
+                href={showtime.bookingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-fit"
+              >
+                <Button variant="outline" size="sm" className="gap-2">
+                  <span className="font-semibold">{showtime.time}</span>
+                  <span className="text-muted-foreground">{showtime.cinema.name}</span>
+                </Button>
+              </a>
             ))}
           </div>
         }
