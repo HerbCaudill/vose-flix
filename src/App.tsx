@@ -5,7 +5,7 @@ import { MovieDetail } from "@/components/MovieDetail"
 import { DateSelector } from "@/components/DateSelector"
 import { FilterMenu } from "@/components/FilterMenu"
 import { Button } from "@/components/ui/button"
-import type { Movie } from "@/types"
+import type { Cinema, Movie } from "@/types"
 import { calculateNormalizedScore } from "@/lib/calculateNormalizedScore"
 import { RefreshCw, Film } from "lucide-react"
 
@@ -38,10 +38,71 @@ function getStateFromUrl(): { movieSlug: string | null; date: string } {
   return { movieSlug: null, date: getToday() }
 }
 
+const STORAGE_KEY_MIN_SCORE = "voseflix-minScore"
+const STORAGE_KEY_CINEMAS = "voseflix-selectedCinemas"
+
+function loadMinScore(): number | null {
+  const stored = localStorage.getItem(STORAGE_KEY_MIN_SCORE)
+  if (stored === null) return null
+  const parsed = parseInt(stored, 10)
+  return isNaN(parsed) ? null : parsed
+}
+
+function loadSelectedCinemas(): Set<string> | null {
+  const stored = localStorage.getItem(STORAGE_KEY_CINEMAS)
+  if (stored === null) return null
+  try {
+    const parsed = JSON.parse(stored)
+    if (Array.isArray(parsed)) {
+      return new Set(parsed)
+    }
+  } catch {
+    // Invalid JSON, return null
+  }
+  return null
+}
+
 export default function App() {
   const { movies, loading, error, refresh } = useMovies()
   const [urlState, setUrlState] = useState(getStateFromUrl)
-  const [minScore, setMinScore] = useState<number | null>(null)
+  const [minScore, setMinScore] = useState<number | null>(loadMinScore)
+  const [selectedCinemas, setSelectedCinemas] = useState<Set<string>>(() => loadSelectedCinemas() ?? new Set())
+
+  // Get all unique cinemas from movies
+  const allCinemas = useMemo(() => {
+    const cinemaMap = new Map<string, Cinema>()
+    for (const movie of movies) {
+      for (const showtime of movie.showtimes) {
+        cinemaMap.set(showtime.cinema.id, showtime.cinema)
+      }
+    }
+    return [...cinemaMap.values()].sort((a, b) => a.name.localeCompare(b.name))
+  }, [movies])
+
+  // Initialize selected cinemas when cinemas are loaded (only if no stored preference)
+  useEffect(() => {
+    if (allCinemas.length > 0 && selectedCinemas.size === 0 && loadSelectedCinemas() === null) {
+      setSelectedCinemas(new Set(allCinemas.map(c => c.id)))
+    }
+  }, [allCinemas, selectedCinemas.size])
+
+  // Persist minScore to localStorage
+  useEffect(() => {
+    if (minScore === null) {
+      localStorage.removeItem(STORAGE_KEY_MIN_SCORE)
+    } else {
+      localStorage.setItem(STORAGE_KEY_MIN_SCORE, String(minScore))
+    }
+  }, [minScore])
+
+  // Persist selectedCinemas to localStorage
+  useEffect(() => {
+    if (selectedCinemas.size === 0) {
+      localStorage.removeItem(STORAGE_KEY_CINEMAS)
+    } else {
+      localStorage.setItem(STORAGE_KEY_CINEMAS, JSON.stringify([...selectedCinemas]))
+    }
+  }, [selectedCinemas])
 
   // Get all available dates from all movies
   const today = getToday()
@@ -65,16 +126,19 @@ export default function App() {
   const selectedMovie =
     urlState.movieSlug ? movies.find(m => m.slug === urlState.movieSlug) || null : null
 
-  // Filter movies that have showtimes on selected date and meet minimum score
+  // Filter movies that have showtimes on selected date, meet minimum score, and are at selected cinemas
   const moviesForDate = useMemo(() => {
     return movies.filter(movie => {
-      const hasShowtimes = movie.showtimes.some(s => s.date === selectedDate)
+      // Check if movie has showtimes on selected date at selected cinemas
+      const hasShowtimes = movie.showtimes.some(
+        s => s.date === selectedDate && selectedCinemas.has(s.cinema.id)
+      )
       if (!hasShowtimes) return false
       if (minScore === null) return true
       const score = calculateNormalizedScore(movie.ratings)
       return score !== null && score >= minScore
     })
-  }, [movies, selectedDate, minScore])
+  }, [movies, selectedDate, minScore, selectedCinemas])
 
   // Redirect to today's date on initial load if at root
   useEffect(() => {
@@ -149,7 +213,13 @@ export default function App() {
               selectedDate={selectedDate}
               onDateChange={setSelectedDate}
             />
-            <FilterMenu minScore={minScore} onMinScoreChange={setMinScore} />
+            <FilterMenu
+              minScore={minScore}
+              onMinScoreChange={setMinScore}
+              cinemas={allCinemas}
+              selectedCinemas={selectedCinemas}
+              onSelectedCinemasChange={setSelectedCinemas}
+            />
           </div>
           <Button
             variant="outline"
@@ -179,7 +249,7 @@ export default function App() {
           </p>
         </div>
 
-        <MovieGrid movies={moviesForDate} loading={loading} onMovieClick={selectMovie} />
+        <MovieGrid movies={moviesForDate} loading={loading} onMovieClick={selectMovie} selectedDate={selectedDate} selectedCinemas={selectedCinemas} />
       </main>
 
       {/* Footer */}

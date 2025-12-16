@@ -6,12 +6,15 @@ import type { Movie } from "@/types"
 interface MovieCardProps {
   movie: Movie
   onClick?: () => void
+  selectedDate: string
+  selectedCinemas: Set<string>
 }
 
-export function MovieCard({ movie, onClick }: MovieCardProps) {
-  // Get today's showtimes
-  const today = new Date().toISOString().split("T")[0]
-  const todayShowtimes = movie.showtimes.filter(s => s.date === today)
+export function MovieCard({ movie, onClick, selectedDate, selectedCinemas }: MovieCardProps) {
+  // Get showtimes for the selected date and cinemas
+  const filteredShowtimes = movie.showtimes.filter(
+    s => s.date === selectedDate && selectedCinemas.has(s.cinema.id)
+  )
 
   return (
     <Card
@@ -39,9 +42,9 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
           duration={movie.duration}
           ratings={movie.ratings}
         />
-        {todayShowtimes.length > 0 && (
+        {filteredShowtimes.length > 0 && (
           <div className="mt-3">
-            <ShowtimesList showtimes={todayShowtimes} size="sm" />
+            <ShowtimesList showtimes={filteredShowtimes} size="sm" />
           </div>
         )}
       </CardContent>
