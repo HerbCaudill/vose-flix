@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge"
+import { MpaaRatingBadge } from "@/components/MpaaRatingBadge"
 import { Clock } from "lucide-react"
 import { formatDuration } from "@/lib/formatDuration"
 import { calculateNormalizedScore } from "@/lib/calculateNormalizedScore"
@@ -9,6 +10,7 @@ interface MovieMetaProps {
   duration: number
   ratings: Ratings
   genres?: string[]
+  rated?: string
 }
 
 function getScoreColor(score: number): string {
@@ -17,7 +19,7 @@ function getScoreColor(score: number): string {
   return "bg-red-600"
 }
 
-export function MovieMeta({ year, duration, ratings, genres }: MovieMetaProps) {
+export function MovieMeta({ year, duration, ratings, genres, rated }: MovieMetaProps) {
   const normalizedScore = calculateNormalizedScore(ratings)
 
   return (
@@ -40,6 +42,11 @@ export function MovieMeta({ year, duration, ratings, genres }: MovieMetaProps) {
           {genre}
         </span>
       ))}
+      {rated && (
+        <span className="ml-auto">
+          <MpaaRatingBadge rated={rated} />
+        </span>
+      )}
     </div>
   )
 }

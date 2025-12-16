@@ -1,10 +1,9 @@
 import { Header } from "@/components/Header"
 import { MovieMeta } from "@/components/MovieMeta"
-import { MpaaRatingBadge } from "@/components/MpaaRatingBadge"
 import { RatingDisplay } from "@/components/RatingDisplay"
 import { ShowtimesList } from "@/components/ShowtimesList"
 import type { Cinema, Movie } from "@/types"
-import { Trophy } from "lucide-react"
+import { Globe, Trophy, Users, Video } from "lucide-react"
 import { formatDateLabel } from "@/lib/formatDateLabel"
 
 function formatNameList(names: string): string {
@@ -110,6 +109,7 @@ export function MovieDetail({
                 duration={movie.duration}
                 ratings={movie.ratings}
                 genres={movie.genres}
+                rated={movie.rated}
               />
             </div>
 
@@ -144,35 +144,38 @@ export function MovieDetail({
               <p className="text-muted-foreground mb-4">{movie.plot}</p>
             )}
 
-            {/* MPAA Rating & Country/Language */}
-            {(movie.rated || movie.country || movie.language) && (
-              <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
-                {movie.rated && <MpaaRatingBadge rated={movie.rated} />}
-                {(movie.country || movie.language) && (
-                  <span className="text-muted-foreground">
-                    {movie.country}
-                    {movie.country && movie.language && " "}
-                    {movie.language && `(${movie.language})`}
-                  </span>
-                )}
-              </div>
+            {/* Country/Language */}
+            {(movie.country || movie.language) && (
+              <p className="mb-4 flex gap-2 text-sm">
+                <Globe className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
+                <span>
+                  {movie.country}
+                  {movie.country && movie.language && " "}
+                  {movie.language && `(${movie.language})`}
+                </span>
+              </p>
             )}
 
             {/* Cast & Crew */}
             {(movie.actors || movie.director) && (
-              <p className="mb-4 text-sm">
+              <div className="mb-4 text-sm space-y-1">
                 {movie.actors && (
-                  <>
-                    <span className="text-muted-foreground">Starring</span> {formatNameList(movie.actors)}.
-                  </>
+                  <p className="flex gap-2">
+                    <Users className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
+                    <span>
+                      <span className="text-muted-foreground">Starring</span> {formatNameList(movie.actors)}.
+                    </span>
+                  </p>
                 )}
-                {movie.actors && movie.director && " "}
                 {movie.director && (
-                  <>
-                    <span className="text-muted-foreground">Directed by</span> {formatNameList(movie.director)}.
-                  </>
+                  <p className="flex gap-2">
+                    <Video className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
+                    <span>
+                      <span className="text-muted-foreground">Directed by</span> {formatNameList(movie.director)}.
+                    </span>
+                  </p>
                 )}
-              </p>
+              </div>
             )}
 
             {/* Awards */}
