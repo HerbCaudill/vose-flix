@@ -125,34 +125,32 @@ export default function App() {
   return (
     <div className="bg-background min-h-screen">
       {/* Header */}
-      <header className="bg-background/95 sticky top-0 z-10 border-b backdrop-blur">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Film className="text-primary h-6 w-6" />
-              <h1 className="text-xl font-bold">VOSEflix</h1>
-              <span className="text-muted-foreground hidden text-sm sm:inline">
-                Barcelona movies with the original audio
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              <DateSelector
-                availableDates={availableDates}
-                selectedDate={selectedDate}
-                onDateChange={setSelectedDate}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={refresh}
-                disabled={loading}
-                className="gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-                <span className="hidden sm:inline">Refresh</span>
-              </Button>
-            </div>
+      <header className="bg-background/95 sticky top-0 z-10 backdrop-blur sm:border-b">
+        <div className="container mx-auto flex flex-wrap items-center gap-x-4 px-4 py-3 sm:py-4">
+          <div className="flex items-center gap-2">
+            <Film className="text-primary h-6 w-6" />
+            <h1 className="text-xl font-bold">VOSEflix</h1>
+            <span className="text-muted-foreground hidden text-sm sm:inline">
+              Barcelona movies with the original audio
+            </span>
           </div>
+          <div className="order-last w-full border-t pt-3 mt-3 sm:order-none sm:ml-auto sm:w-auto sm:border-0 sm:p-0 sm:m-0">
+            <DateSelector
+              availableDates={availableDates}
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refresh}
+            disabled={loading}
+            className="ml-auto gap-2 sm:ml-0"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
         </div>
       </header>
 
