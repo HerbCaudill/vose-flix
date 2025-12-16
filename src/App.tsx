@@ -270,12 +270,6 @@ export default function App() {
           </div>
         )}
 
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-muted-foreground text-sm">
-            {loading ? "Loading movies..." : `${moviesForDate.length} movies showing`}
-          </p>
-        </div>
-
         <MovieGrid
           movies={moviesForDate}
           loading={loading}
