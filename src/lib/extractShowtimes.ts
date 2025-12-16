@@ -15,6 +15,7 @@ export function extractShowtimes($: cheerio.CheerioAPI, movieSlug: string): Show
     cinemaSlug: string
     cinemaName: string
     date: string
+    showtimeId: string
   }> = []
 
   // Find all showtime links - pattern: /r/cinema-slug/movie-slug/id
@@ -29,11 +30,17 @@ export function extractShowtimes($: cheerio.CheerioAPI, movieSlug: string): Show
 
     const time = timeMatch[1]
 
-    // Extract cinema slug from URL
+    // Extract cinema slug and showtime ID from URL: /r/{cinema}/{movie}/{id}
     const cinemaMatch = href.match(/\/r\/([^/]+)\//)
     if (!cinemaMatch) return
 
     const cinemaSlug = cinemaMatch[1]
+
+    // Extract showtime ID (last segment of the URL)
+    const idMatch = href.match(/\/(\d+)$/)
+    if (!idMatch) return
+
+    const showtimeId = idMatch[1]
 
     // Try to determine the date from context
     const date = findDateForShowtime($, element) || new Date().toISOString().split("T")[0]
@@ -54,7 +61,7 @@ export function extractShowtimes($: cheerio.CheerioAPI, movieSlug: string): Show
         .join(" ")
     }
 
-    showtimeData.push({ href, time, cinemaSlug, cinemaName, date })
+    showtimeData.push({ href, time, cinemaSlug, cinemaName, date, showtimeId })
   })
 
   // Use the redirect URLs directly - they'll redirect to the actual booking page when clicked
@@ -72,6 +79,8 @@ export function extractShowtimes($: cheerio.CheerioAPI, movieSlug: string): Show
       date: data.date,
       time: data.time,
       bookingUrl: BASE_URL + data.href,
+      showtimeId: data.showtimeId,
+      movieSlug,
     })
   }
 

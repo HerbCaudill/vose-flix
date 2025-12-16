@@ -40,6 +40,8 @@ export interface Showtime {
   date: string // ISO date string YYYY-MM-DD
   time: string // HH:MM
   bookingUrl: string
+  showtimeId?: string // ID from englishcinemabarcelona.com for direct booking
+  movieSlug?: string // Movie slug for booking form
 }
 
 export interface Cinema {
