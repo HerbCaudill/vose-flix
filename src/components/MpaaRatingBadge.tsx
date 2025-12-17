@@ -19,7 +19,7 @@ function getMpaaRatingColor(rated: string): string {
 
 export function MpaaRatingBadge({ rated }: { rated: string }) {
   return (
-    <Badge className={`${getMpaaRatingColor(rated)} text-xs font-bold shadow-md`}>
+    <Badge className={`${getMpaaRatingColor(rated)} text-xs font-bold`}>
       {rated}
     </Badge>
   )
