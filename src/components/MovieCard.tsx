@@ -2,27 +2,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { MovieMeta } from "@/components/MovieMeta"
 import { ShowtimesList } from "@/components/ShowtimesList"
 import type { Movie } from "@/types"
+import { timeToMinutes } from "./timeToMinutes"
 
-function timeToMinutes(time: string): number {
-  const [hours, minutes] = time.split(":").map(Number)
-  return hours * 60 + minutes
-}
-
-interface MovieCardProps {
-  movie: Movie
-  onClick?: () => void
-  selectedDate: string
-  selectedCinemas: Set<string>
-  timeRange: [number, number]
-}
-
-export function MovieCard({
-  movie,
-  onClick,
-  selectedDate,
-  selectedCinemas,
-  timeRange,
-}: MovieCardProps) {
+export function MovieCard({ movie, onClick, selectedDate, selectedCinemas, timeRange }: Props) {
   // Get showtimes for the selected date, cinemas, and time range
   const filteredShowtimes = movie.showtimes.filter(s => {
     if (s.date !== selectedDate) return false
@@ -37,7 +19,7 @@ export function MovieCard({
       className="group cursor-pointer gap-0 overflow-hidden py-0 transition-all hover:scale-[1.02] hover:shadow-xl"
       onClick={onClick}
     >
-      <div className="bg-muted aspect-[2/3] overflow-hidden">
+      <div className="bg-muted aspect-2/3 overflow-hidden">
         {movie.posterUrl ?
           <img
             src={movie.posterUrl}
@@ -72,4 +54,12 @@ export function MovieCard({
       </CardContent>
     </Card>
   )
+}
+
+type Props = {
+  movie: Movie
+  onClick?: () => void
+  selectedDate: string
+  selectedCinemas: Set<string>
+  timeRange: [number, number]
 }
