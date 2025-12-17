@@ -28,12 +28,12 @@ export function MovieDetail({ movie, selectedDate, selectedCinemas, timeRange }:
       {/* Movie header */}
       <div className="mb-6 flex flex-col gap-4 md:flex-row">
         {/* Poster */}
-        <div className="w-full shrink-0 md:w-64">
+        <div className="w-full shrink-0 md:w-80">
           {movie.posterUrl ?
             <img
               src={movie.posterUrl}
               alt={movie.title}
-              className="max-h-80 w-auto rounded-lg shadow-lg md:max-h-none md:w-full"
+              className="max-h-96 w-auto rounded-lg shadow-lg md:max-h-none md:w-full"
             />
           : <div className="bg-muted flex aspect-2/3 items-center justify-center rounded-lg">
               No poster
@@ -137,6 +137,7 @@ export function MovieDetail({ movie, selectedDate, selectedCinemas, timeRange }:
       <ShowtimesList
         showtimes={filteredShowtimes}
         emptyMessage={`No showtimes available for ${formatDateLabel(selectedDate).toLowerCase()}`}
+        orientation="horizontal"
       />
 
       {/* Trailer */}
