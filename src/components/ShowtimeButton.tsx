@@ -53,7 +53,7 @@ export function ShowtimeButton({ showtime, size = "default" }: ShowtimeButtonPro
       onClick={handleClick}
       className="w-fit"
     >
-      <Button variant="outline" size="sm" className={sizeClasses}>
+      <Button variant="outline" size="sm" className={`${sizeClasses} cursor-pointer`}>
         <span className="font-semibold">{showtime.time}</span>
         <span className="text-muted-foreground">{showtime.cinema.name}</span>
       </Button>
