@@ -29,7 +29,6 @@ export async function fetchTmdbTrailer(title: string, year?: number): Promise<st
     const searchUrl = `https://api.themoviedb.org/3/search/movie?${searchParams}`
     const searchResponse = await fetch(searchUrl)
     const searchData: TmdbSearchResult = await searchResponse.json()
-    console.log(searchData)
 
     if (!searchData.results || searchData.results.length === 0) {
       return null

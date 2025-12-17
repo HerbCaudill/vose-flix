@@ -8,7 +8,6 @@ export async function fetchHtml(url: string): Promise<string> {
     return cached
   }
 
-  console.log(`[fetch] ${url}`)
   const response = await fetch(CORS_PROXY + encodeURIComponent(url))
   if (!response.ok) {
     throw new Error(`Failed to fetch ${url}: ${response.status}`)

@@ -29,7 +29,6 @@ export async function fetchOmdbData(title: string): Promise<OmdbData> {
   const result: OmdbData = {}
   try {
     const url = `https://www.omdbapi.com/?t=${encodeURIComponent(title)}&apikey=${OMDB_API_KEY}`
-    console.log(`[fetch] OMDB: ${title}`)
     const response = await fetch(url)
     const data = await response.json()
 
