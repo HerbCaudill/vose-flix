@@ -158,29 +158,8 @@ export default function App() {
     [selectedDate],
   )
 
-  if (selectedMovie) {
-    return (
-      <MovieDetail
-        movie={selectedMovie}
-        selectedDate={selectedDate}
-        availableDates={availableDates}
-        onDateChange={setSelectedDate}
-        minScore={minScore}
-        onMinScoreChange={setMinScore}
-        cinemas={allCinemas}
-        selectedCinemas={selectedCinemas}
-        onSelectedCinemasChange={setSelectedCinemas}
-        timeRange={timeRange}
-        onTimeRangeChange={setTimeRange}
-        loading={loading}
-        onRefresh={refresh}
-        onBack={() => selectMovie(null)}
-      />
-    )
-  }
-
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background mx-auto min-h-screen max-w-[100em]">
       <Header
         availableDates={availableDates}
         selectedDate={selectedDate}
@@ -194,10 +173,9 @@ export default function App() {
         onTimeRangeChange={setTimeRange}
         loading={loading}
         onRefresh={refresh}
+        onLogoClick={selectedMovie ? () => selectMovie(null) : undefined}
       />
-
-      {/* Main content */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="px-4 py-6">
         {error && (
           <div className="bg-destructive/10 text-destructive mb-6 rounded-lg p-4">
             <p className="font-medium">Error loading movies</p>
@@ -205,16 +183,23 @@ export default function App() {
           </div>
         )}
 
-        <MovieGrid
-          movies={moviesForDate}
-          loading={loading}
-          onMovieClick={selectMovie}
-          selectedDate={selectedDate}
-          selectedCinemas={selectedCinemas}
-          timeRange={timeRange}
-        />
+        {selectedMovie ?
+          <MovieDetail
+            movie={selectedMovie}
+            selectedDate={selectedDate}
+            selectedCinemas={selectedCinemas}
+            timeRange={timeRange}
+          />
+        : <MovieGrid
+            movies={moviesForDate}
+            loading={loading}
+            onMovieClick={selectMovie}
+            selectedDate={selectedDate}
+            selectedCinemas={selectedCinemas}
+            timeRange={timeRange}
+          />
+        }
       </main>
-
       {/* Footer */}
       <footer className="text-muted-foreground border-t py-6 text-center text-sm">
         <p>

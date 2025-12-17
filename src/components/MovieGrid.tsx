@@ -19,41 +19,30 @@ export function MovieGrid({
   selectedCinemas,
   timeRange,
 }: MovieGridProps) {
-  if (loading && movies.length === 0) {
-    return (
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <MovieCardSkeleton key={i} />
-        ))}
-      </div>
-    )
-  }
-
-  if (movies.length === 0) {
-    return (
+  return !loading && movies.length === 0 ?
       <div className="text-muted-foreground flex flex-col items-center justify-center py-12">
         <p className="text-lg">No movies found</p>
         <p className="text-sm">Check back later for updated listings</p>
       </div>
-    )
-  }
-
-  return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-      {movies.map(movie => (
-        <MovieCard
-          key={movie.id}
-          movie={movie}
-          onClick={() => onMovieClick(movie)}
-          selectedDate={selectedDate}
-          selectedCinemas={selectedCinemas}
-          timeRange={timeRange}
-        />
-      ))}
-      {loading &&
-        Array.from({ length: 3 }).map((_, i) => <MovieCardSkeleton key={`skeleton-${i}`} />)}
-    </div>
-  )
+    : <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
+        {loading && movies.length === 0 ?
+          Array.from({ length: 12 }).map((_, i) => <MovieCardSkeleton key={i} />)
+        : <>
+            {movies.map(movie => (
+              <MovieCard
+                key={movie.id}
+                movie={movie}
+                onClick={() => onMovieClick(movie)}
+                selectedDate={selectedDate}
+                selectedCinemas={selectedCinemas}
+                timeRange={timeRange}
+              />
+            ))}
+            {loading &&
+              Array.from({ length: 3 }).map((_, i) => <MovieCardSkeleton key={`skeleton-${i}`} />)}
+          </>
+        }
+      </div>
 }
 
 function MovieCardSkeleton() {

@@ -37,7 +37,7 @@ export function Header({
 }: HeaderProps) {
   return (
     <header className="bg-background/95 sticky top-0 z-10 backdrop-blur sm:border-b">
-      <div className="container mx-auto flex flex-wrap items-center gap-x-4 px-4 py-3 sm:py-4">
+      <div className="flex flex-wrap items-center gap-x-4 px-4 py-3 sm:py-4">
         <button
           onClick={onLogoClick}
           className="flex items-center gap-2 transition-opacity hover:opacity-80"
@@ -48,7 +48,7 @@ export function Header({
             Barcelona movies with original audio
           </span>
         </button>
-        <div className="order-last mt-3 flex w-full items-center justify-between gap-4 border-t pt-3 sm:order-none sm:m-0 sm:ml-auto sm:w-auto sm:justify-start sm:border-0 sm:p-0">
+        <div className="order-last mt-3 flex w-full items-center justify-between gap-4 border-t pt-3 sm:order-0 sm:m-0 sm:ml-auto sm:w-auto sm:justify-start sm:border-0 sm:p-0">
           <DateSelector
             availableDates={availableDates}
             selectedDate={selectedDate}

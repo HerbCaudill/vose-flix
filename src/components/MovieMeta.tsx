@@ -23,7 +23,7 @@ export function MovieMeta({ year, duration, ratings, genres, rated }: MovieMetaP
   const normalizedScore = calculateNormalizedScore(ratings)
 
   return (
-    <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
+    <div className="text-muted-foreground text-2xs flex flex-wrap items-center gap-2 xl:text-xs">
       {normalizedScore !== null && (
         <Badge className={`${getScoreColor(normalizedScore)} gap-1 font-bold text-white`}>
           {Math.round(normalizedScore)}

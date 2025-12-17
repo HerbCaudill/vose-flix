@@ -19,9 +19,5 @@ export function RatingBadge({ type, value, label }: RatingBadgeProps) {
       : "bg-amber-800",
   }
 
-  return (
-    <Badge className={`${colors[type]} text-xs font-bold text-white shadow-md`}>
-      {label}
-    </Badge>
-  )
+  return <Badge className={`${colors[type]} font-bold text-white shadow-md`}>{label}</Badge>
 }
