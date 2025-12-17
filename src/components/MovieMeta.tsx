@@ -5,21 +5,7 @@ import { formatDuration } from "@/lib/formatDuration"
 import { calculateNormalizedScore } from "@/lib/calculateNormalizedScore"
 import type { Ratings } from "@/types"
 
-interface MovieMetaProps {
-  year?: number
-  duration: number
-  ratings: Ratings
-  genres?: string[]
-  rated?: string
-}
-
-function getScoreColor(score: number): string {
-  if (score >= 70) return "bg-green-600"
-  if (score >= 50) return "bg-yellow-500"
-  return "bg-red-600"
-}
-
-export function MovieMeta({ year, duration, ratings, genres, rated }: MovieMetaProps) {
+export function MovieMeta({ year, duration, ratings, genres, rated }: Props) {
   const normalizedScore = calculateNormalizedScore(ratings)
 
   return (
@@ -49,4 +35,18 @@ export function MovieMeta({ year, duration, ratings, genres, rated }: MovieMetaP
       )}
     </div>
   )
+}
+
+function getScoreColor(score: number): string {
+  if (score >= 70) return "bg-green-600"
+  if (score >= 50) return "bg-yellow-500"
+  return "bg-red-600"
+}
+
+type Props = {
+  year?: number
+  duration: number
+  ratings: Ratings
+  genres?: string[]
+  rated?: string
 }
