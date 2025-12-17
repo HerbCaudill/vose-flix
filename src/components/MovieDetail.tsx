@@ -83,6 +83,7 @@ export function MovieDetail({
       />
 
       <div className="container mx-auto px-4 py-4">
+        <div className="max-w-3xl">
         {/* Movie header */}
         <div className="mb-6 flex flex-col gap-4 md:flex-row">
           {/* Poster */}
@@ -201,7 +202,7 @@ export function MovieDetail({
         {movie.trailerKey && (
           <div className="mt-6">
             <h2 className="mb-4 text-2xl font-bold">Trailer</h2>
-            <div className="aspect-video w-full max-w-3xl overflow-hidden rounded-lg">
+            <div className="aspect-video w-full overflow-hidden rounded-lg">
               <iframe
                 src={`https://www.youtube.com/embed/${movie.trailerKey}`}
                 title={`${movie.title} trailer`}
@@ -212,6 +213,7 @@ export function MovieDetail({
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   )
