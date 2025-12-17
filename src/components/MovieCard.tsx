@@ -16,7 +16,13 @@ interface MovieCardProps {
   timeRange: [number, number]
 }
 
-export function MovieCard({ movie, onClick, selectedDate, selectedCinemas, timeRange }: MovieCardProps) {
+export function MovieCard({
+  movie,
+  onClick,
+  selectedDate,
+  selectedCinemas,
+  timeRange,
+}: MovieCardProps) {
   // Get showtimes for the selected date, cinemas, and time range
   const filteredShowtimes = movie.showtimes.filter(s => {
     if (s.date !== selectedDate) return false
@@ -28,7 +34,7 @@ export function MovieCard({ movie, onClick, selectedDate, selectedCinemas, timeR
 
   return (
     <Card
-      className="group cursor-pointer overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl gap-0 py-0"
+      className="group cursor-pointer gap-0 overflow-hidden py-0 transition-all hover:scale-[1.02] hover:shadow-xl"
       onClick={onClick}
     >
       <div className="bg-muted aspect-[2/3] overflow-hidden">
@@ -46,15 +52,17 @@ export function MovieCard({ movie, onClick, selectedDate, selectedCinemas, timeR
       </div>
 
       <CardContent className="p-3">
-        <h3 className="line-clamp-2 leading-tight font-semibold mb-2">{movie.title}</h3>
-        <MovieMeta
-          year={movie.year}
-          duration={movie.duration}
-          ratings={movie.ratings}
-          rated={movie.rated}
-        />
+        <h3 className="mb-2 line-clamp-2 leading-tight font-semibold">{movie.title}</h3>
+        <div className="text-2xs xl:text-xs">
+          <MovieMeta
+            year={movie.year}
+            duration={movie.duration}
+            ratings={movie.ratings}
+            rated={movie.rated}
+          />
+        </div>
         {movie.plot && (
-          <p className="text-muted-foreground text-xs line-clamp-4 mt-2">{movie.plot}</p>
+          <p className="text-muted-foreground mt-2 line-clamp-4 text-xs">{movie.plot}</p>
         )}
         {filteredShowtimes.length > 0 && (
           <div className="mt-3">

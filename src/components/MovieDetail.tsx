@@ -5,24 +5,6 @@ import type { Movie } from "@/types"
 import { Globe, Trophy, Users, Video } from "lucide-react"
 import { formatDateLabel } from "@/lib/formatDateLabel"
 
-function formatNameList(names: string): string {
-  const list = names
-    .split(", ")
-    .map(n => n.trim())
-    .filter(Boolean)
-  if (list.length === 0) return ""
-  if (list.length === 1) return list[0]
-  if (list.length === 2) return `${list[0]} and ${list[1]}`
-  return `${list.slice(0, -1).join(", ")}, and ${list[list.length - 1]}`
-}
-
-interface MovieDetailProps {
-  movie: Movie
-  selectedDate: string
-  selectedCinemas: Set<string>
-  timeRange: [number, number]
-}
-
 export function MovieDetail({ movie, selectedDate, selectedCinemas, timeRange }: MovieDetailProps) {
   const { ratings } = movie
 
@@ -53,7 +35,7 @@ export function MovieDetail({ movie, selectedDate, selectedCinemas, timeRange }:
               alt={movie.title}
               className="max-h-80 w-auto rounded-lg shadow-lg md:max-h-none md:w-full"
             />
-          : <div className="bg-muted flex aspect-[2/3] items-center justify-center rounded-lg">
+          : <div className="bg-muted flex aspect-2/3 items-center justify-center rounded-lg">
               No poster
             </div>
           }
@@ -63,7 +45,7 @@ export function MovieDetail({ movie, selectedDate, selectedCinemas, timeRange }:
         <div className="flex-1">
           <h1 className="mb-2 text-3xl font-bold">{movie.title}</h1>
 
-          <div className="mb-4">
+          <div className="mb-4 text-sm">
             <MovieMeta
               year={movie.year}
               duration={movie.duration}
@@ -174,4 +156,22 @@ export function MovieDetail({ movie, selectedDate, selectedCinemas, timeRange }:
       )}
     </div>
   )
+}
+
+function formatNameList(names: string): string {
+  const list = names
+    .split(", ")
+    .map(n => n.trim())
+    .filter(Boolean)
+  if (list.length === 0) return ""
+  if (list.length === 1) return list[0]
+  if (list.length === 2) return `${list[0]} and ${list[1]}`
+  return `${list.slice(0, -1).join(", ")}, and ${list[list.length - 1]}`
+}
+
+interface MovieDetailProps {
+  movie: Movie
+  selectedDate: string
+  selectedCinemas: Set<string>
+  timeRange: [number, number]
 }
