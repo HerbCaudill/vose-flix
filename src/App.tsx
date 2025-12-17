@@ -5,83 +5,18 @@ import { MovieDetail } from "@/components/MovieDetail"
 import { Header } from "@/components/Header"
 import type { Cinema, Movie } from "@/types"
 import { calculateNormalizedScore } from "@/lib/calculateNormalizedScore"
-
-function getToday(): string {
-  return new Date().toISOString().split("T")[0]
-}
-
-function getStateFromUrl(): { movieSlug: string | null; date: string } {
-  const path = window.location.pathname
-
-  // URL format: /{date}/{movie-slug}
-  const movieMatch = path.match(/^\/(\d{4}-\d{2}-\d{2})\/(.+)$/)
-  if (movieMatch) {
-    return {
-      date: movieMatch[1],
-      movieSlug: decodeURIComponent(movieMatch[2]),
-    }
-  }
-
-  // URL format: /{date}
-  const dateMatch = path.match(/^\/(\d{4}-\d{2}-\d{2})\/?$/)
-  if (dateMatch) {
-    return {
-      date: dateMatch[1],
-      movieSlug: null,
-    }
-  }
-
-  // Default to today
-  return { movieSlug: null, date: getToday() }
-}
-
-const STORAGE_KEY_MIN_SCORE = "voseflix-minScore"
-const STORAGE_KEY_CINEMAS = "voseflix-selectedCinemas"
-const STORAGE_KEY_TIME_RANGE = "voseflix-timeRange"
-
-// Default time range: 12:00 (720 min) to 24:00 (1440 min)
-const DEFAULT_TIME_RANGE: [number, number] = [720, 1440]
-
-function loadMinScore(): number | null {
-  const stored = localStorage.getItem(STORAGE_KEY_MIN_SCORE)
-  if (stored === null) return null
-  const parsed = parseInt(stored, 10)
-  return isNaN(parsed) ? null : parsed
-}
-
-function loadSelectedCinemas(): Set<string> | null {
-  const stored = localStorage.getItem(STORAGE_KEY_CINEMAS)
-  if (stored === null) return null
-  try {
-    const parsed = JSON.parse(stored)
-    if (Array.isArray(parsed)) {
-      return new Set(parsed)
-    }
-  } catch {
-    // Invalid JSON, return null
-  }
-  return null
-}
-
-function loadTimeRange(): [number, number] | null {
-  const stored = localStorage.getItem(STORAGE_KEY_TIME_RANGE)
-  if (stored === null) return null
-  try {
-    const parsed = JSON.parse(stored)
-    if (Array.isArray(parsed) && parsed.length === 2) {
-      return [parsed[0], parsed[1]]
-    }
-  } catch {
-    // Invalid JSON, return null
-  }
-  return null
-}
-
-// Convert "HH:MM" to minutes from midnight
-function timeToMinutes(time: string): number {
-  const [hours, minutes] = time.split(":").map(Number)
-  return hours * 60 + minutes
-}
+import { getStateFromUrl } from "./lib/getStateFromUrl"
+import { getToday } from "./lib/getToday"
+import { loadMinScore } from "./lib/loadMinScore"
+import { loadSelectedCinemas } from "./lib/loadSelectedCinemas"
+import { loadTimeRange } from "./lib/loadTimeRange"
+import { timeToMinutes } from "./lib/timeToMinutes"
+import {
+  DEFAULT_TIME_RANGE,
+  STORAGE_KEY_MIN_SCORE,
+  STORAGE_KEY_CINEMAS,
+  STORAGE_KEY_TIME_RANGE,
+} from "./lib/constants"
 
 export default function App() {
   const { movies, loading, error, refresh } = useMovies()
@@ -184,7 +119,7 @@ export default function App() {
     if (window.location.pathname === "/" && availableDates.length > 0) {
       const targetDate = availableDates.includes(today) ? today : availableDates[0]
       // Only update state, don't change URL - keeps "/" for PWA home screen
-      setUrlState(prev => prev.date !== targetDate ? { ...prev, date: targetDate } : prev)
+      setUrlState(prev => (prev.date !== targetDate ? { ...prev, date: targetDate } : prev))
     }
   }, [availableDates, today])
 

@@ -7,7 +7,10 @@ import { Globe, Trophy, Users, Video } from "lucide-react"
 import { formatDateLabel } from "@/lib/formatDateLabel"
 
 function formatNameList(names: string): string {
-  const list = names.split(", ").map(n => n.trim()).filter(Boolean)
+  const list = names
+    .split(", ")
+    .map(n => n.trim())
+    .filter(Boolean)
   if (list.length === 0) return ""
   if (list.length === 1) return list[0]
   if (list.length === 2) return `${list[0]} and ${list[1]}`
@@ -82,137 +85,137 @@ export function MovieDetail({
         onLogoClick={onBack}
       />
 
-      <div className="container mx-auto px-4 py-4">
-        <div className="max-w-3xl">
-        {/* Movie header */}
-        <div className="mb-6 flex flex-col gap-4 md:flex-row">
-          {/* Poster */}
-          <div className="w-full shrink-0 md:w-64">
-            {movie.posterUrl ?
-              <img
-                src={movie.posterUrl}
-                alt={movie.title}
-                className="max-h-80 w-auto rounded-lg shadow-lg md:max-h-none md:w-full"
-              />
-            : <div className="bg-muted flex aspect-[2/3] items-center justify-center rounded-lg">
-                No poster
+      <div className="px-4 py-4">
+        <div>
+          {/* Movie header */}
+          <div className="mb-6 flex flex-col gap-4 md:flex-row">
+            {/* Poster */}
+            <div className="w-full shrink-0 md:w-64">
+              {movie.posterUrl ?
+                <img
+                  src={movie.posterUrl}
+                  alt={movie.title}
+                  className="max-h-80 w-auto rounded-lg shadow-lg md:max-h-none md:w-full"
+                />
+              : <div className="bg-muted flex aspect-[2/3] items-center justify-center rounded-lg">
+                  No poster
+                </div>
+              }
+            </div>
+
+            {/* Info */}
+            <div className="flex-1">
+              <h1 className="mb-2 text-3xl font-bold">{movie.title}</h1>
+
+              <div className="mb-4">
+                <MovieMeta
+                  year={movie.year}
+                  duration={movie.duration}
+                  ratings={movie.ratings}
+                  genres={movie.genres}
+                  rated={movie.rated}
+                />
               </div>
-            }
-          </div>
 
-          {/* Info */}
-          <div className="flex-1">
-            <h1 className="mb-2 text-3xl font-bold">{movie.title}</h1>
-
-            <div className="mb-4">
-              <MovieMeta
-                year={movie.year}
-                duration={movie.duration}
-                ratings={movie.ratings}
-                genres={movie.genres}
-                rated={movie.rated}
-              />
-            </div>
-
-            {/* Individual ratings */}
-            <div className="mb-4 flex flex-wrap gap-8">
-              {ratings.rottenTomatoes && (
-                <RatingDisplay
-                  label="Rotten Tomatoes"
-                  value={`${ratings.rottenTomatoes.critics}%`}
-                  score={ratings.rottenTomatoes.critics}
-                />
-              )}
-              {ratings.metacritic && (
-                <RatingDisplay
-                  label="Metacritic"
-                  value={ratings.metacritic.toString()}
-                  score={ratings.metacritic}
-                />
-              )}
-              {ratings.imdb && (
-                <RatingDisplay
-                  label="IMDB"
-                  value={`${ratings.imdb.score.toFixed(1)}`}
-                  score={ratings.imdb.score * 10}
-                  subtext={`(${(ratings.imdb.votes / 1000).toFixed(0)}k votes)`}
-                />
-              )}
-            </div>
-
-            {/* Plot */}
-            {movie.plot && (
-              <p className="text-muted-foreground mb-4">{movie.plot}</p>
-            )}
-
-            {/* Country/Language */}
-            {(movie.country || movie.language) && (
-              <p className="mb-4 flex gap-2 text-sm">
-                <Globe className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
-                <span>
-                  {movie.country}
-                  {movie.country && movie.language && " "}
-                  {movie.language && `(${movie.language})`}
-                </span>
-              </p>
-            )}
-
-            {/* Cast & Crew */}
-            {(movie.actors || movie.director) && (
-              <div className="mb-4 text-sm space-y-1">
-                {movie.actors && (
-                  <p className="flex gap-2">
-                    <Users className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
-                    <span>
-                      <span className="text-muted-foreground">Starring</span> {formatNameList(movie.actors)}.
-                    </span>
-                  </p>
+              {/* Individual ratings */}
+              <div className="mb-4 flex flex-wrap gap-8">
+                {ratings.rottenTomatoes && (
+                  <RatingDisplay
+                    label="Rotten Tomatoes"
+                    value={`${ratings.rottenTomatoes.critics}%`}
+                    score={ratings.rottenTomatoes.critics}
+                  />
                 )}
-                {movie.director && (
-                  <p className="flex gap-2">
-                    <Video className="text-muted-foreground h-4 w-4 shrink-0 mt-0.5" />
-                    <span>
-                      <span className="text-muted-foreground">Directed by</span> {formatNameList(movie.director)}.
-                    </span>
-                  </p>
+                {ratings.metacritic && (
+                  <RatingDisplay
+                    label="Metacritic"
+                    value={ratings.metacritic.toString()}
+                    score={ratings.metacritic}
+                  />
+                )}
+                {ratings.imdb && (
+                  <RatingDisplay
+                    label="IMDB"
+                    value={`${ratings.imdb.score.toFixed(1)}`}
+                    score={ratings.imdb.score * 10}
+                    subtext={`(${(ratings.imdb.votes / 1000).toFixed(0)}k votes)`}
+                  />
                 )}
               </div>
-            )}
 
-            {/* Awards */}
-            {movie.awards && movie.awards !== "N/A" && (
-              <div className="mt-4 flex items-start gap-2 text-sm">
-                <Trophy className="text-yellow-500 h-4 w-4 shrink-0 mt-0.5" />
-                <span>{movie.awards}</span>
-              </div>
-            )}
-          </div>
-        </div>
+              {/* Plot */}
+              {movie.plot && <p className="text-muted-foreground mb-4">{movie.plot}</p>}
 
-        {/* Showtimes */}
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold">Showtimes</h2>
-        </div>
-        <ShowtimesList
-          showtimes={filteredShowtimes}
-          emptyMessage={`No showtimes available for ${formatDateLabel(selectedDate).toLowerCase()}`}
-        />
+              {/* Country/Language */}
+              {(movie.country || movie.language) && (
+                <p className="mb-4 flex gap-2 text-sm">
+                  <Globe className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
+                  <span>
+                    {movie.country}
+                    {movie.country && movie.language && " "}
+                    {movie.language && `(${movie.language})`}
+                  </span>
+                </p>
+              )}
 
-        {/* Trailer */}
-        {movie.trailerKey && (
-          <div className="mt-6">
-            <h2 className="mb-4 text-2xl font-bold">Trailer</h2>
-            <div className="aspect-video w-full overflow-hidden rounded-lg">
-              <iframe
-                src={`https://www.youtube.com/embed/${movie.trailerKey}`}
-                title={`${movie.title} trailer`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="h-full w-full"
-              />
+              {/* Cast & Crew */}
+              {(movie.actors || movie.director) && (
+                <div className="mb-4 space-y-1 text-sm">
+                  {movie.actors && (
+                    <p className="flex gap-2">
+                      <Users className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
+                      <span>
+                        <span className="text-muted-foreground">Starring</span>{" "}
+                        {formatNameList(movie.actors)}.
+                      </span>
+                    </p>
+                  )}
+                  {movie.director && (
+                    <p className="flex gap-2">
+                      <Video className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
+                      <span>
+                        <span className="text-muted-foreground">Directed by</span>{" "}
+                        {formatNameList(movie.director)}.
+                      </span>
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Awards */}
+              {movie.awards && movie.awards !== "N/A" && (
+                <div className="mt-4 flex items-start gap-2 text-sm">
+                  <Trophy className="mt-0.5 h-4 w-4 shrink-0 text-yellow-500" />
+                  <span>{movie.awards}</span>
+                </div>
+              )}
             </div>
           </div>
-        )}
+
+          {/* Showtimes */}
+          <div className="mb-4">
+            <h2 className="text-2xl font-bold">Showtimes</h2>
+          </div>
+          <ShowtimesList
+            showtimes={filteredShowtimes}
+            emptyMessage={`No showtimes available for ${formatDateLabel(selectedDate).toLowerCase()}`}
+          />
+
+          {/* Trailer */}
+          {movie.trailerKey && (
+            <div className="mt-6">
+              <h2 className="mb-4 text-2xl font-bold">Trailer</h2>
+              <div className="aspect-video w-full overflow-hidden rounded-lg">
+                <iframe
+                  src={`https://www.youtube.com/embed/${movie.trailerKey}`}
+                  title={`${movie.title} trailer`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="h-full w-full"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

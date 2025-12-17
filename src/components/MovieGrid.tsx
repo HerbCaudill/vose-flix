@@ -11,10 +11,17 @@ interface MovieGridProps {
   timeRange: [number, number]
 }
 
-export function MovieGrid({ movies, loading, onMovieClick, selectedDate, selectedCinemas, timeRange }: MovieGridProps) {
+export function MovieGrid({
+  movies,
+  loading,
+  onMovieClick,
+  selectedDate,
+  selectedCinemas,
+  timeRange,
+}: MovieGridProps) {
   if (loading && movies.length === 0) {
     return (
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
         {Array.from({ length: 12 }).map((_, i) => (
           <MovieCardSkeleton key={i} />
         ))}
@@ -34,7 +41,14 @@ export function MovieGrid({ movies, loading, onMovieClick, selectedDate, selecte
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {movies.map(movie => (
-        <MovieCard key={movie.id} movie={movie} onClick={() => onMovieClick(movie)} selectedDate={selectedDate} selectedCinemas={selectedCinemas} timeRange={timeRange} />
+        <MovieCard
+          key={movie.id}
+          movie={movie}
+          onClick={() => onMovieClick(movie)}
+          selectedDate={selectedDate}
+          selectedCinemas={selectedCinemas}
+          timeRange={timeRange}
+        />
       ))}
       {loading &&
         Array.from({ length: 3 }).map((_, i) => <MovieCardSkeleton key={`skeleton-${i}`} />)}
