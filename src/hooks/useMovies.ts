@@ -112,9 +112,14 @@ export function useMovies(): UseMoviesResult {
       }
 
       // Fetch movie list and all showtimes in parallel
+      // fetchAllShowtimes is non-fatal: if the 7-day overview page fails,
+      // we still show movies with showtimes from individual detail pages
       const [movieList, allShowtimes] = await Promise.all([
         fetchMovieList(),
-        fetchAllShowtimes(),
+        fetchAllShowtimes().catch((err): ShowtimesByMovie => {
+          console.warn("Failed to fetch 7-day overview:", err)
+          return new Map()
+        }),
       ])
 
       const detailedMovies: Movie[] = []
