@@ -1,4 +1,4 @@
-import { CORS_PROXY } from "./constants"
+import { CORS_PROXIES } from "./constants"
 import { getCachedHtml, setCachedHtml } from "./htmlCache"
 
 export async function fetchHtml(url: string): Promise<string> {
@@ -8,14 +8,32 @@ export async function fetchHtml(url: string): Promise<string> {
     return cached
   }
 
-  const response = await fetch(CORS_PROXY + encodeURIComponent(url))
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${url}: ${response.status}`)
+  const errors: string[] = []
+
+  for (const proxy of CORS_PROXIES) {
+    try {
+      const response = await fetch(proxy + encodeURIComponent(url))
+      if (!response.ok) {
+        errors.push(`${proxy}: ${response.status}`)
+        continue
+      }
+      const html = await response.text()
+
+      // Validate we got actual HTML content
+      if (!html || html.length < 100) {
+        errors.push(`${proxy}: empty or too-short response`)
+        continue
+      }
+
+      // Cache the response
+      setCachedHtml(url, html)
+      return html
+    } catch (err) {
+      errors.push(`${proxy}: ${err instanceof Error ? err.message : String(err)}`)
+    }
   }
-  const html = await response.text()
 
-  // Cache the response
-  setCachedHtml(url, html)
-
-  return html
+  throw new Error(
+    `Failed to fetch ${url} (all proxies failed):\n${errors.join("\n")}`
+  )
 }
