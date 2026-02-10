@@ -7,6 +7,15 @@ import path from "path"
 export default defineConfig({
   // Handle SPA routing - serve index.html for all routes
   appType: "spa",
+  server: {
+    proxy: {
+      "/api/proxy": {
+        target: "https://englishcinemabarcelona.com",
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/api\/proxy/, ""),
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
