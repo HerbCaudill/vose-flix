@@ -4,10 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "localhost-dev pnpm dev:app",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:app": "vite",
+    "dev:url": "localhost-dev url"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.3",
