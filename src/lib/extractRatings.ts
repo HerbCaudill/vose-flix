@@ -4,7 +4,7 @@ export function extractRatings(text: string): Ratings {
   const ratings: Ratings = {}
 
   // Rotten Tomatoes - look for percentage
-  const rtMatch = text.match(/Rotten\s*Tomatoes[:\s]*(\d+)%/i)
+  const rtMatch = text.match(/Rotten\s*Tomatoes(?:\s*\(Critics\))?[:\s]*(\d+)%/i)
   if (rtMatch) {
     ratings.rottenTomatoes = { critics: parseInt(rtMatch[1], 10) }
   }

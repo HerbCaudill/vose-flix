@@ -1,14 +1,13 @@
 import * as cheerio from "cheerio"
 import type { MovieListItem } from "@/types"
-import { BASE_URL } from "./constants"
 import { fetchHtml } from "./fetchHtml"
 
 export async function fetchMovieList(): Promise<MovieListItem[]> {
-  const html = await fetchHtml(BASE_URL)
+  const html = await fetchHtml("/films")
   const $ = cheerio.load(html)
   const movies: MovieListItem[] = []
 
-  // Find all movie cards on the homepage
+  // Find all movie cards on the films page
   $('a[href^="/m/"]').each((_, element) => {
     const $el = $(element)
     const href = $el.attr("href")

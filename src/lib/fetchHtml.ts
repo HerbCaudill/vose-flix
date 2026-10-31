@@ -1,39 +1,21 @@
-import { CORS_PROXIES } from "./constants"
+import { SOURCE_PROXY_PATH } from "./constants"
 import { getCachedHtml, setCachedHtml } from "./htmlCache"
 
-export async function fetchHtml(url: string): Promise<string> {
+/** Fetches a page from the source site through the app's same-origin rewrite. */
+export async function fetchHtml(path: string): Promise<string> {
   // Check cache first
-  const cached = getCachedHtml(url)
+  const cached = getCachedHtml(path)
   if (cached) {
     return cached
   }
 
-  const errors: string[] = []
-
-  for (const proxy of CORS_PROXIES) {
-    try {
-      const response = await fetch(proxy + encodeURIComponent(url))
-      if (!response.ok) {
-        errors.push(`${proxy}: ${response.status}`)
-        continue
-      }
-      const html = await response.text()
-
-      // Validate we got actual HTML content
-      if (!html || html.length < 100) {
-        errors.push(`${proxy}: empty or too-short response`)
-        continue
-      }
-
-      // Cache the response
-      setCachedHtml(url, html)
-      return html
-    } catch (err) {
-      errors.push(`${proxy}: ${err instanceof Error ? err.message : String(err)}`)
-    }
+  const response = await fetch(SOURCE_PROXY_PATH + path)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${path}: ${response.status}`)
   }
+  const html = await response.text()
 
-  throw new Error(
-    `Failed to fetch ${url} (all proxies failed):\n${errors.join("\n")}`
-  )
+  // Cache the response
+  setCachedHtml(path, html)
+  return html
 }

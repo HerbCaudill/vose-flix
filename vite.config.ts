@@ -19,11 +19,21 @@ const localhostServer = process.env.PORTLESS_URL
     }
   : {};
 
+/** Mirror the `/source` rewrite in vercel.json so the browser can read the source site. */
+const sourceProxy = {
+  "/source": {
+    target: "https://englishcinemabarcelona.com",
+    changeOrigin: true,
+    rewrite: (path: string) => path.replace(/^\/source/, ""),
+  },
+};
+
 export default defineConfig({
   ...(process.env.PORTLESS_URL
     ? { cacheDir: `node_modules/.cache/localhost-dev/${process.env.PORT}` }
     : {}),
-  server: { ...localhostServer },
+  server: { ...localhostServer, proxy: sourceProxy },
+  preview: { proxy: sourceProxy },
   // Handle SPA routing - serve index.html for all routes
   appType: "spa",
   plugins: [
