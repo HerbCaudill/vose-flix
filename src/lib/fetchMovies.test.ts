@@ -75,6 +75,28 @@ describe("loading movies from Sensacine", () => {
     ])
   })
 
+  it("converts Sensacine's press score out of 5 to a score out of 100", async () => {
+    stubFetch({
+      "E0608/2026-11-01/1": {
+        results: [
+          {
+            movie: { ...AMOR, stats: { pressReview: { score: 4.29, count: 7 } } },
+            showtimes: { original: [showtime("2026-11-01T19:45:00")] },
+          },
+          {
+            movie: { ...DUBBED_ONLY, stats: { pressReview: { score: null, count: null } } },
+            showtimes: { original: [showtime("2026-11-01T19:45:00")] },
+          },
+        ],
+      },
+    })
+
+    const movies = await fetchMovies()
+
+    expect(movies[0].ratings).toEqual({ sensacinePress: 86 })
+    expect(movies[1].ratings).toEqual({})
+  })
+
   it("keeps only original-version screenings", async () => {
     stubFetch({
       "E0608/2026-11-01/1": {

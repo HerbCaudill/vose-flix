@@ -14,6 +14,7 @@ export function calculateNormalizedScore(ratings: Ratings): number | null {
     scores.push(ratings.imdb.score * 10) // Convert 0-10 to 0-100
   }
 
-  if (scores.length === 0) return null
+  // Only a fallback: it rests on a few mostly Spanish reviews, but new releases often have nothing else
+  if (scores.length === 0) return ratings.sensacinePress ?? null
   return scores.reduce((a, b) => a + b, 0) / scores.length
 }

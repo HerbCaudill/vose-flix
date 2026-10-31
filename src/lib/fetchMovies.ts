@@ -88,6 +88,7 @@ function hasOriginalAudio(version: string, { tags }: SourceShowtime, movie: Sour
 
 /** Converts a Sensacine film to a movie with no showtimes yet. */
 function toMovie(id: string, movie: SourceMovie): Movie {
+  const pressScore = movie.stats?.pressReview?.score
   return {
     id,
     slug: id,
@@ -99,7 +100,7 @@ function toMovie(id: string, movie: SourceMovie): Movie {
     language: movie.languages?.map(toTitleCase).join(", ") || undefined,
     country: movie.countries?.map(country => country.name).join(", ") || undefined,
     plot: movie.synopsis || undefined,
-    ratings: {},
+    ratings: pressScore ? { sensacinePress: Math.round(pressScore * 20) } : {},
     showtimes: [],
   }
 }
@@ -184,6 +185,7 @@ interface SourceMovie {
   synopsis?: string | null
   countries?: { name: string }[] | null
   data?: { productionYear?: number | null } | null
+  stats?: { pressReview?: { score?: number | null } | null } | null
 }
 
 interface SourceShowtime {

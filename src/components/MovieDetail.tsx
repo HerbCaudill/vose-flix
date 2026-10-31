@@ -79,6 +79,13 @@ export function MovieDetail({ movie, selectedDate, selectedCinemas, timeRange }:
                 subtext={`(${(ratings.imdb.votes / 1000).toFixed(0)}k votes)`}
               />
             )}
+            {ratings.sensacinePress && (
+              <RatingDisplay
+                label="Sensacine press"
+                value={ratings.sensacinePress.toString()}
+                score={ratings.sensacinePress}
+              />
+            )}
           </div>
 
           {/* Plot */}

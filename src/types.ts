@@ -29,6 +29,7 @@ export interface Ratings {
     audience?: number // percentage
   }
   metacritic?: number // 0-100
+  sensacinePress?: number // 0-100
   imdb?: {
     score: number // 0-10
     votes: number
