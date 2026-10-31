@@ -2,7 +2,7 @@ import type { Cinema, Movie, Showtime } from "@/types"
 import { SOURCE_PROXY_PATH, SOURCE_URL } from "./constants"
 import { getToday } from "./getToday"
 
-/** Loads every original-version film showing in Barcelona over the coming week. */
+/** Loads every original-audio film showing in Barcelona over the coming week. */
 export async function fetchMovies(): Promise<Movie[]> {
   const requests = CINEMAS.flatMap(cinema => getUpcomingDates().map(date => ({ cinema, date })))
   const movies = new Map<string, Movie>()
@@ -61,16 +61,35 @@ async function fetchPage(cinema: Cinema, date: string, page: number): Promise<Li
   return response.json()
 }
 
-/** Adds a listing's original-version showtimes to its film, creating the film if needed. */
+/** Adds a listing's original-audio showtimes to its film, creating the film if needed. */
 function addListing(movies: Map<string, Movie>, { movie, showtimes }: Listing, cinema: Cinema) {
   if (!movie) return
 
-  const screenings = ORIGINAL_VERSIONS.flatMap(version => showtimes?.[version] ?? [])
+  const screenings = Object.entries(showtimes ?? {}).flatMap(([version, versionShowtimes]) =>
+    versionShowtimes.filter(screening => hasOriginalAudio(version, screening, movie)),
+  )
   if (screenings.length === 0) return
 
   const id = String(movie.internalId)
   if (!movies.has(id)) movies.set(id, toMovie(id, movie))
-  movies.get(id)!.showtimes.push(...screenings.map(screening => toShowtime(screening, cinema)))
+  const film = movies.get(id)!
+  for (const screening of screenings) {
+    const showtime = toShowtime(screening, cinema)
+    // The same screening can be listed under more than one version
+    const isDuplicate = film.showtimes.some(
+      s => s.cinema.id === cinema.id && s.date === showtime.date && s.time === showtime.time,
+    )
+    if (!isDuplicate) film.showtimes.push(showtime)
+  }
+}
+
+/** Decides whether a screening plays the film's own audio, whatever version Sensacine files it under. */
+function hasOriginalAudio(version: string, { tags }: SourceShowtime, movie: SourceMovie): boolean {
+  if (version.startsWith("original")) return true
+  // Spanish films are often marked "local" or even "dubbed" when shown in Spanish
+  const tag = tags?.find(tag => tag.startsWith(LANGUAGE_TAG))
+  const language = tag ? tag.slice(LANGUAGE_TAG.length).toUpperCase() : "SPANISH"
+  return language === movie.languages?.[0]
 }
 
 /** Converts a Sensacine film to a movie with no showtimes yet. */
@@ -128,8 +147,7 @@ function toTitleCase(tag: string): string {
 const BATCH_SIZE = 6
 const DAYS_AHEAD = 7
 
-// Sensacine groups showtimes by version; these are the plain, subtitled and captioned originals
-const ORIGINAL_VERSIONS = ["original", "original_st", "original_sme"]
+const LANGUAGE_TAG = "Localization.Language."
 
 const CINEMAS: Cinema[] = [
   { id: "E0764", name: "Arenas Multicines" },
@@ -176,6 +194,7 @@ interface SourceMovie {
 
 interface SourceShowtime {
   startsAt: string
+  tags?: string[] | null
   data?: { ticketing?: SourceTicketing[] | null } | null
 }
 

@@ -4,11 +4,12 @@ import { MovieGrid } from "@/components/MovieGrid"
 import { MovieDetail } from "@/components/MovieDetail"
 import { Header } from "@/components/Header"
 import type { Cinema, Movie } from "@/types"
-import { calculateNormalizedScore } from "@/lib/calculateNormalizedScore"
+import { meetsMinScore } from "@/lib/meetsMinScore"
 import { getStateFromUrl } from "./lib/getStateFromUrl"
 import { getToday } from "./lib/getToday"
 import { loadMinScore } from "./lib/loadMinScore"
-import { loadSelectedCinemas } from "./lib/loadSelectedCinemas"
+import { loadDeselectedCinemas } from "@/lib/loadDeselectedCinemas"
+import { getDeselectedCinemas } from "@/lib/getDeselectedCinemas"
 import { loadTimeRange } from "./lib/loadTimeRange"
 import { timeToMinutes } from "./lib/timeToMinutes"
 import {
@@ -22,9 +23,7 @@ export default function App() {
   const { movies, loading, error, refresh } = useMovies()
   const [urlState, setUrlState] = useState(getStateFromUrl)
   const [minScore, setMinScore] = useState<number | null>(loadMinScore)
-  const [selectedCinemas, setSelectedCinemas] = useState<Set<string>>(
-    () => loadSelectedCinemas() ?? new Set(),
-  )
+  const [deselectedCinemas, setDeselectedCinemas] = useState(loadDeselectedCinemas)
   const [timeRange, setTimeRange] = useState<[number, number]>(
     () => loadTimeRange() ?? DEFAULT_TIME_RANGE,
   )
@@ -40,12 +39,17 @@ export default function App() {
     return [...cinemaMap.values()].sort((a, b) => a.name.localeCompare(b.name))
   }, [movies])
 
-  // Initialize selected cinemas when cinemas are loaded (only if no stored preference)
-  useEffect(() => {
-    if (allCinemas.length > 0 && selectedCinemas.size === 0 && loadSelectedCinemas() === null) {
-      setSelectedCinemas(new Set(allCinemas.map(c => c.id)))
-    }
-  }, [allCinemas, selectedCinemas.size])
+  // Films load in batches, so remembering what's off keeps cinemas that appear later switched on
+  const selectedCinemas = useMemo(
+    () => new Set(allCinemas.map(c => c.id).filter(id => !deselectedCinemas.has(id))),
+    [allCinemas, deselectedCinemas],
+  )
+
+  const setSelectedCinemas = useCallback(
+    (selected: Set<string>) =>
+      setDeselectedCinemas(previous => getDeselectedCinemas(selected, allCinemas, previous)),
+    [allCinemas],
+  )
 
   // Persist minScore to localStorage
   useEffect(() => {
@@ -56,14 +60,10 @@ export default function App() {
     }
   }, [minScore])
 
-  // Persist selectedCinemas to localStorage
+  // Persist deselected cinemas to localStorage
   useEffect(() => {
-    if (selectedCinemas.size === 0) {
-      localStorage.removeItem(STORAGE_KEY_CINEMAS)
-    } else {
-      localStorage.setItem(STORAGE_KEY_CINEMAS, JSON.stringify([...selectedCinemas]))
-    }
-  }, [selectedCinemas])
+    localStorage.setItem(STORAGE_KEY_CINEMAS, JSON.stringify([...deselectedCinemas]))
+  }, [deselectedCinemas])
 
   // Persist timeRange to localStorage
   useEffect(() => {
@@ -108,9 +108,7 @@ export default function App() {
         return startMinutes >= timeRange[0] && endMinutes <= timeRange[1]
       })
       if (!hasShowtimes) return false
-      if (minScore === null) return true
-      const score = calculateNormalizedScore(movie.ratings)
-      return score !== null && score >= minScore
+      return meetsMinScore(movie.ratings, minScore)
     })
   }, [movies, selectedDate, minScore, selectedCinemas, timeRange])
 

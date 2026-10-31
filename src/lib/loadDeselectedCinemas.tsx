@@ -1,15 +1,15 @@
 import { STORAGE_KEY_CINEMAS } from "./constants"
 
-export function loadSelectedCinemas(): Set<string> | null {
+export function loadDeselectedCinemas(): Set<string> {
   const stored = localStorage.getItem(STORAGE_KEY_CINEMAS)
-  if (stored === null) return null
+  if (stored === null) return new Set()
   try {
     const parsed = JSON.parse(stored)
     if (Array.isArray(parsed)) {
       return new Set(parsed)
     }
   } catch {
-    // Invalid JSON, return null
+    // Invalid JSON, return an empty set
   }
-  return null
+  return new Set()
 }

@@ -41,6 +41,7 @@ export function MovieCard({ movie, onClick, selectedDate, selectedCinemas, timeR
             duration={movie.duration}
             ratings={movie.ratings}
             rated={movie.rated}
+            language={movie.language}
           />
         </div>
         {movie.plot && (

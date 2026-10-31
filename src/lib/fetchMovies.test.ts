@@ -3,8 +3,13 @@ import { fetchMovies } from "./fetchMovies"
 import { mergeOmdbData } from "@/hooks/useMovies"
 import type { Movie } from "@/types"
 
-const showtime = (startsAt: string, urls: { provider: string; url: string }[] = []) => ({
+const showtime = (
+  startsAt: string,
+  urls: { provider: string; url: string }[] = [],
+  tags: string[] = [],
+) => ({
   startsAt,
+  tags,
   data: { ticketing: urls.map(({ provider, url }) => ({ provider, urls: [url] })) },
 })
 
@@ -91,6 +96,57 @@ describe("loading movies from Sensacine", () => {
 
     expect(movies.map(movie => movie.title)).toEqual(["Ganeunghan Salang"])
     expect(movies[0].showtimes.map(s => s.time)).toEqual(["19:45", "22:00"])
+  })
+
+  it("keeps screenings in a film's own language whatever their version", async () => {
+    const CATALAN = ["Localization.Language.Catalan"]
+    const SPANISH = ["Localization.Language.Spanish"]
+    const inSpanish = { ...AMOR, internalId: 789, originalTitle: "La Bola Negra", languages: ["SPANISH"] }
+    const mostlyEnglish = {
+      ...AMOR,
+      internalId: 790,
+      originalTitle: "Gilda",
+      languages: ["ENGLISH", "SPANISH"],
+    }
+    stubFetch({
+      "E0608/2026-11-01/1": {
+        results: [
+          {
+            movie: inSpanish,
+            showtimes: {
+              local: [showtime("2026-11-01T16:00:00", [], SPANISH)],
+              dubbed: [
+                showtime("2026-11-01T18:00:00"),
+                showtime("2026-11-01T20:00:00", [], CATALAN),
+              ],
+            },
+          },
+          { movie: mostlyEnglish, showtimes: { dubbed: [showtime("2026-11-01T17:00:00", [], SPANISH)] } },
+        ],
+      },
+    })
+
+    const movies = await fetchMovies()
+
+    expect(movies.map(movie => movie.title)).toEqual(["La Bola Negra"])
+    expect(movies[0].showtimes.map(s => s.time)).toEqual(["16:00", "18:00"])
+  })
+
+  it("lists a screening once when it appears under two versions", async () => {
+    stubFetch({
+      "E0608/2026-11-01/1": {
+        results: [
+          {
+            movie: { ...AMOR, languages: ["SPANISH"] },
+            showtimes: { local: [showtime("2026-11-01T16:00:00")], dubbed: [showtime("2026-11-01T16:00:00")] },
+          },
+        ],
+      },
+    })
+
+    const [movie] = await fetchMovies()
+
+    expect(movie.showtimes).toHaveLength(1)
   })
 
   it("combines a film's showtimes across cinemas, dates and pages", async () => {

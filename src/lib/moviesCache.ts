@@ -1,9 +1,9 @@
 import type { Movie } from "@/types"
 
-const MOVIES_CACHE_KEY = "sensacine-movies-cache"
+const MOVIES_CACHE_KEY = "sensacine-movies-cache-v2"
 const MOVIES_CACHE_TTL = 8 * 60 * 60 * 1000 // 8 hours
-// Left behind by the previous source; the HTML cache could fill localStorage
-const LEGACY_CACHE_KEYS = ["movies-cache", "ecb-html-cache"]
+// Left behind by earlier versions; the HTML cache could fill localStorage
+const LEGACY_CACHE_KEYS = ["movies-cache", "ecb-html-cache", "sensacine-movies-cache"]
 
 interface MoviesCache {
   movies: Movie[]

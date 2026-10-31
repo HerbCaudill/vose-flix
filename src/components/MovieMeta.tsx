@@ -1,11 +1,11 @@
 import { Badge } from "@/components/ui/badge"
 import { MpaaRatingBadge } from "@/components/MpaaRatingBadge"
-import { Clock } from "lucide-react"
+import { Clock, Languages } from "lucide-react"
 import { formatDuration } from "@/lib/formatDuration"
 import { calculateNormalizedScore } from "@/lib/calculateNormalizedScore"
 import type { Ratings } from "@/types"
 
-export function MovieMeta({ year, duration, ratings, genres, rated }: Props) {
+export function MovieMeta({ year, duration, ratings, genres, rated, language }: Props) {
   const normalizedScore = calculateNormalizedScore(ratings)
 
   return (
@@ -20,6 +20,12 @@ export function MovieMeta({ year, duration, ratings, genres, rated }: Props) {
         <span className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
           {formatDuration(duration)}
+        </span>
+      )}
+      {language && language !== "English" && (
+        <span className="flex items-center gap-1">
+          <Languages className="h-3 w-3" />
+          {language}
         </span>
       )}
       {genres?.map((genre, i) => (
@@ -49,4 +55,5 @@ type Props = {
   ratings: Ratings
   genres?: string[]
   rated?: string
+  language?: string
 }
