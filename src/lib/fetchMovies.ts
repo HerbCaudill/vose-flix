@@ -53,9 +53,9 @@ async function fetchListings(cinema: Cinema, date: string): Promise<Listing[]> {
   return [first, ...rest].flatMap(page => page.results ?? [])
 }
 
-/** Fetches one page of listings through the app's same-origin rewrite. */
+/** Fetches one page of listings through the app's same-origin rewrite, which adds the trailing slash Sensacine requires. */
 async function fetchPage(cinema: Cinema, date: string, page: number): Promise<ListingsPage> {
-  const path = `/_/showtimes/theater-${cinema.id}/d-${date}/p-${page}/`
+  const path = `/_/showtimes/theater-${cinema.id}/d-${date}/p-${page}`
   const response = await fetch(SOURCE_PROXY_PATH + path)
   if (!response.ok) throw new Error(`Failed to fetch ${path}: ${response.status}`)
   return response.json()

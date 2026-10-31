@@ -104,7 +104,7 @@ describe("loading movies from Sensacine", () => {
 
     const movies = await fetchMovies()
 
-    expect(fetchMock).toHaveBeenCalledWith("/source/_/showtimes/theater-E0608/d-2026-11-01/p-2/")
+    expect(fetchMock).toHaveBeenCalledWith("/source/_/showtimes/theater-E0608/d-2026-11-01/p-2")
     expect(movies).toHaveLength(1)
     expect(movies[0].showtimes).toMatchObject([
       { date: "2026-11-01", time: "19:45", cinema: { id: "E0608", name: "Cines Verdi Barcelona" } },

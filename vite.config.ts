@@ -24,7 +24,7 @@ const sourceProxy = {
   "/source": {
     target: "https://www.sensacine.com",
     changeOrigin: true,
-    rewrite: (path: string) => path.replace(/^\/source/, ""),
+    rewrite: (path: string) => `${path.replace(/^\/source/, "")}/`,
   },
 };
 
