@@ -3,7 +3,7 @@ import type { Movie } from "@/types"
 import { fetchMovies } from "@/lib/fetchMovies"
 import { fetchOmdbData, type OmdbData } from "@/lib/fetchOmdbData"
 import { fetchTmdbTrailer } from "@/lib/fetchTmdbTrailer"
-import { getCachedMovies, setCachedMovies, clearMoviesCache } from "@/lib/moviesCache"
+import { getCachedMovies, setCachedMovies } from "@/lib/moviesCache"
 import { clearOmdbCache } from "@/lib/omdbCache"
 import { sortMovies } from "@/lib/sortMovies"
 
@@ -49,13 +49,13 @@ export function useMovies(): UseMoviesResult {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadMovies = useCallback(async () => {
+  const loadMovies = useCallback(async (forceRefresh = false) => {
     setLoading(true)
     setError(null)
 
     try {
       // Check for cached movies first
-      const cached = getCachedMovies()
+      const cached = forceRefresh ? null : getCachedMovies()
       if (cached) {
         setMovies(cached)
         setLoading(false)
@@ -79,6 +79,9 @@ export function useMovies(): UseMoviesResult {
 
       setCachedMovies(sortMovies(detailedMovies))
     } catch (err) {
+      // Older listings are more useful than an empty page, and most showtimes will still be right
+      const previous = getCachedMovies(Infinity)
+      if (previous) setMovies(previous)
       setError(err instanceof Error ? err.message : "Failed to load movies")
     } finally {
       setLoading(false)
@@ -86,9 +89,8 @@ export function useMovies(): UseMoviesResult {
   }, [])
 
   const refresh = useCallback(() => {
-    clearMoviesCache()
     clearOmdbCache()
-    loadMovies()
+    loadMovies(true)
   }, [loadMovies])
 
   useEffect(() => {

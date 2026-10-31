@@ -47,7 +47,7 @@ export function MovieCard({ movie, onClick, selectedDate, selectedCinemas, timeR
         {movie.plot && (
           <p className="text-muted-foreground mt-2 line-clamp-4 text-xs">{movie.plot}</p>
         )}
-        <div className="mt-3">
+        <div className="mt-3 max-h-48 overflow-y-auto">
           <ShowtimesList showtimes={filteredShowtimes} size="sm" />
         </div>
       </CardContent>

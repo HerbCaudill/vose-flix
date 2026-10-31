@@ -6,26 +6,17 @@ import { getToday } from "./getToday"
 export async function fetchMovies(): Promise<Movie[]> {
   const requests = CINEMAS.flatMap(cinema => getUpcomingDates().map(date => ({ cinema, date })))
   const movies = new Map<string, Movie>()
-  let firstError: unknown
-  let successes = 0
 
-  // Limit concurrent requests to avoid overwhelming the source site
+  // Limit concurrent requests to avoid overwhelming the source site. A failure ends the whole load,
+  // because more requests would worsen a block and a partial list would look complete.
   for (let i = 0; i < requests.length; i += BATCH_SIZE) {
     const batch = requests.slice(i, i + BATCH_SIZE)
-    const results = await Promise.allSettled(batch.map(({ cinema, date }) => fetchListings(cinema, date)))
+    const results = await Promise.all(batch.map(({ cinema, date }) => fetchListings(cinema, date)))
 
-    results.forEach((result, j) => {
-      // Cinemas close and change IDs, so one failure shouldn't hide the others
-      if (result.status === "rejected") {
-        firstError ??= result.reason
-        return
-      }
-      successes++
-      for (const listing of result.value) addListing(movies, listing, batch[j].cinema)
+    results.forEach((listings, j) => {
+      for (const listing of listings) addListing(movies, listing, batch[j].cinema)
     })
   }
-
-  if (successes === 0) throw firstError
 
   return [...movies.values()].map(movie => ({
     ...movie,
@@ -57,6 +48,9 @@ async function fetchListings(cinema: Cinema, date: string): Promise<Listing[]> {
 async function fetchPage(cinema: Cinema, date: string, page: number): Promise<ListingsPage> {
   const path = `/_/showtimes/theater-${cinema.id}/d-${date}/p-${page}`
   const response = await fetch(SOURCE_PROXY_PATH + path)
+  // Cinemas close and change IDs, so a missing one shouldn't hide the others
+  if (response.status === 404) return {}
+  if (response.status === 429) throw new Error("Sensacine is temporarily blocking requests. Try again later.")
   if (!response.ok) throw new Error(`Failed to fetch ${path}: ${response.status}`)
   return response.json()
 }

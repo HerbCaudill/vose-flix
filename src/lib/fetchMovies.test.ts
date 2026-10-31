@@ -218,6 +218,20 @@ describe("loading movies from Sensacine", () => {
     expect(movies.map(movie => movie.title)).toEqual(["Ganeunghan Salang"])
   })
 
+  it("stops at the first rate-limited request instead of returning a partial list", async () => {
+    const fetchMock = vi.fn(async (url: string) =>
+      url.includes("E0764/d-2026-11-01") ?
+        Response.json({
+          results: [{ movie: AMOR, showtimes: { original: [showtime("2026-11-01T19:45:00")] } }],
+        })
+      : new Response("", { status: 429 }),
+    )
+    vi.stubGlobal("fetch", fetchMock)
+
+    await expect(fetchMovies()).rejects.toThrow("Sensacine is temporarily blocking requests")
+    expect(fetchMock.mock.calls.length).toBeLessThanOrEqual(6)
+  })
+
   it("reports an error when every request fails", async () => {
     vi.stubGlobal(
       "fetch",

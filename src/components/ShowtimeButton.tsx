@@ -15,11 +15,11 @@ export function ShowtimeButton({ showtime, size = "default" }: ShowtimeButtonPro
       target="_blank"
       rel="noopener noreferrer"
       onClick={e => e.stopPropagation()}
-      className="w-fit"
+      className="w-fit max-w-full"
     >
-      <Button variant="outline" size="sm" className={`${sizeClasses} cursor-pointer`}>
+      <Button variant="outline" size="sm" className={`${sizeClasses} max-w-full cursor-pointer`}>
         <span className="font-semibold">{showtime.time}</span>
-        <span className="text-muted-foreground">{showtime.cinema.name}</span>
+        <span className="text-muted-foreground truncate">{showtime.cinema.name}</span>
       </Button>
     </a>
   )
