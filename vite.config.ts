@@ -22,7 +22,7 @@ const localhostServer = process.env.PORTLESS_URL
 /** Mirror the `/source` rewrite in vercel.json so the browser can read the source site. */
 const sourceProxy = {
   "/source": {
-    target: "https://englishcinemabarcelona.com",
+    target: "https://www.sensacine.com",
     changeOrigin: true,
     rewrite: (path: string) => path.replace(/^\/source/, ""),
   },

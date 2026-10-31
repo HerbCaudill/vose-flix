@@ -40,21 +40,9 @@ export interface Showtime {
   date: string // ISO date string YYYY-MM-DD
   time: string // HH:MM
   bookingUrl: string
-  showtimeId?: string // ID from englishcinemabarcelona.com for direct booking
-  movieSlug?: string // Movie slug for booking form
 }
 
 export interface Cinema {
   id: string
   name: string
-  slug: string
-}
-
-export interface MovieListItem {
-  title: string
-  slug: string
-  posterUrl: string
-  duration: number
-  genres: string[]
-  ratings: Ratings
 }

@@ -1,7 +1,9 @@
 import type { Movie } from "@/types"
 
-const MOVIES_CACHE_KEY = "movies-cache"
+const MOVIES_CACHE_KEY = "sensacine-movies-cache"
 const MOVIES_CACHE_TTL = 8 * 60 * 60 * 1000 // 8 hours
+// Left behind by the previous source; the HTML cache could fill localStorage
+const LEGACY_CACHE_KEYS = ["movies-cache", "ecb-html-cache"]
 
 interface MoviesCache {
   movies: Movie[]
@@ -25,6 +27,7 @@ export function getCachedMovies(): Movie[] | null {
 
 export function setCachedMovies(movies: Movie[]): void {
   try {
+    LEGACY_CACHE_KEYS.forEach(key => localStorage.removeItem(key))
     const cache: MoviesCache = { movies, timestamp: Date.now() }
     localStorage.setItem(MOVIES_CACHE_KEY, JSON.stringify(cache))
   } catch {

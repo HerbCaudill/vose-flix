@@ -1,64 +1,43 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { fetchMovieDetails } from "./fetchMovieDetails"
-import { fetchMovieList } from "./fetchMovieList"
+import { fetchMovies } from "./fetchMovies"
 import { mergeOmdbData } from "@/hooks/useMovies"
 import type { Movie } from "@/types"
 
-const FILMS_PAGE = `
-  <a class="film-card" data-title="The Invite" href="/m/the-invite/in-english-in-barcelona">
-    <div class="film-card-poster">
-      <img src="https://img.englishcinemabarcelona.com/poster.jpg" alt="The Invite" />
-      <span class="film-card-showcount">116 showtimes</span>
-    </div>
-    <h2 class="film-card-title">The Invite</h2>
-    <p class="film-card-next">Next: Tonight 15:50 · Renoir Floridablanca</p>
-  </a>`
+const showtime = (startsAt: string, urls: { provider: string; url: string }[] = []) => ({
+  startsAt,
+  data: { ticketing: urls.map(({ provider, url }) => ({ provider, urls: [url] })) },
+})
 
-const DETAIL_PAGE = `
-  <img src="https://img.englishcinemabarcelona.com/unrelated-cinema-logo.jpg" />
-  <h1 class="hero-title">The Invite</h1>
-  <div class="detail-item">
-    <span class="detail-label">Year</span>
-    <span class="detail-value">2026</span>
-  </div>
-  <div class="detail-item">
-    <span class="detail-label">Runtime</span>
-    <span class="detail-value">1h 47m</span>
-  </div>
-  <div class="detail-item">
-    <span class="detail-label">Genre</span>
-    <span class="detail-value">Comedy &#xB7; Drama &#xB7; Romance</span>
-  </div>
-  <div class="detail-item">
-    <span class="detail-label">Rotten Tomatoes (Critics)</span>
-    <span class="detail-value">96%</span>
-  </div>
-  <div class="detail-item">
-    <span class="detail-label">Metacritic</span>
-    <span class="detail-value">82</span>
-  </div>
-  <div class="cinema-block">
-    <h3 class="cinema-block-name">
-      <a href="/cinema/mooby-balmes">Mooby Balmes</a>
-    </h3>
-    <a class="showtime-chip" data-showtime-label="Sat 31 Oct 19:45" href="/r/mooby-balmes/the-invite/941136">
-      <span class="showtime-chip-time">19:45</span>
-    </a>
-    <a class="showtime-chip" data-showtime-label="Tue 5 Jan 21:30" href="/r/mooby-balmes/the-invite/941137">
-      <span class="showtime-chip-time">21:30</span>
-    </a>
-  </div>`
+const AMOR = {
+  internalId: 123,
+  title: "Un amor posible",
+  originalTitle: "Ganeunghan Salang",
+  runtime: "1h 54min",
+  languages: ["KOREAN", "ENGLISH"],
+  genres: [{ tag: "SCIENCE_FICTION" }, { tag: "DRAMA" }],
+  poster: { url: "https://img/amor.jpg" },
+  synopsis: "Una historia",
+  countries: [{ name: "South Korea" }],
+  data: { productionYear: 2026 },
+}
 
-const stubFetch = (html: string) => {
-  const fetchMock = vi.fn(async () => new Response(html))
+const DUBBED_ONLY = { ...AMOR, internalId: 456, title: "Doblada", originalTitle: "Dubbed" }
+
+/** Serves canned pages keyed by "cinema/date/page"; anything else is an empty page. */
+const stubFetch = (pages: Record<string, { results: unknown[]; totalPages?: number }>) => {
+  const fetchMock = vi.fn(async (url: string) => {
+    const [, cinema, date, page] = url.match(/theater-(\w+)\/d-([\d-]+)\/p-(\d+)/)!
+    const body = pages[`${cinema}/${date}/${page}`] ?? { results: [] }
+    return Response.json({ results: body.results, pagination: { totalPages: body.totalPages ?? 1 } })
+  })
   vi.stubGlobal("fetch", fetchMock)
   return fetchMock
 }
 
-describe("loading movies from the source site", () => {
+describe("loading movies from Sensacine", () => {
   beforeEach(() => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 9, 31, 12))
+    vi.useFakeTimers({ toFake: ["Date"] })
+    vi.setSystemTime(new Date("2026-11-01T12:00:00Z"))
   })
 
   afterEach(() => {
@@ -66,59 +45,138 @@ describe("loading movies from the source site", () => {
     vi.unstubAllGlobals()
   })
 
-  it("lists films from the same-origin films page", async () => {
-    const fetchMock = stubFetch(FILMS_PAGE)
+  it("reads film details under their original title", async () => {
+    stubFetch({
+      "E0608/2026-11-01/1": {
+        results: [{ movie: AMOR, showtimes: { original: [showtime("2026-11-01T19:45:00")] } }],
+      },
+    })
 
-    const movies = await fetchMovieList()
+    const movies = await fetchMovies()
 
-    expect(fetchMock).toHaveBeenCalledWith("/source/films")
     expect(movies).toMatchObject([
       {
-        title: "The Invite",
-        slug: "the-invite",
-        posterUrl: "https://img.englishcinemabarcelona.com/poster.jpg",
+        id: "123",
+        slug: "123",
+        title: "Ganeunghan Salang",
+        posterUrl: "https://img/amor.jpg",
+        duration: 114,
+        year: 2026,
+        genres: ["Science Fiction", "Drama"],
+        language: "Korean, English",
+        country: "South Korea",
+        plot: "Una historia",
       },
     ])
   })
 
-  it("reads film details from the labeled detail fields", async () => {
-    const fetchMock = stubFetch(DETAIL_PAGE)
-
-    const movie = await fetchMovieDetails("the-invite", "https://img.englishcinemabarcelona.com/poster.jpg")
-
-    expect(fetchMock).toHaveBeenCalledWith("/source/m/the-invite/in-english-in-barcelona")
-    expect(movie).toMatchObject({
-      title: "The Invite",
-      posterUrl: "https://img.englishcinemabarcelona.com/poster.jpg",
-      year: 2026,
-      duration: 107,
-      genres: ["Comedy", "Drama", "Romance"],
-      ratings: { rottenTomatoes: { critics: 96 }, metacritic: 82 },
+  it("keeps only original-version screenings", async () => {
+    stubFetch({
+      "E0608/2026-11-01/1": {
+        results: [
+          { movie: DUBBED_ONLY, showtimes: { dubbed: [showtime("2026-11-01T17:00:00")] } },
+          {
+            movie: AMOR,
+            showtimes: {
+              dubbed: [showtime("2026-11-01T16:00:00")],
+              original: [showtime("2026-11-01T22:00:00")],
+              original_st: [showtime("2026-11-01T19:45:00")],
+            },
+          },
+        ],
+      },
     })
+
+    const movies = await fetchMovies()
+
+    expect(movies.map(movie => movie.title)).toEqual(["Ganeunghan Salang"])
+    expect(movies[0].showtimes.map(s => s.time)).toEqual(["19:45", "22:00"])
   })
 
-  it("dates each showtime from its label and names its cinema", async () => {
-    stubFetch(DETAIL_PAGE)
+  it("combines a film's showtimes across cinemas, dates and pages", async () => {
+    const entry = (startsAt: string) => ({ movie: AMOR, showtimes: { original: [showtime(startsAt)] } })
+    const fetchMock = stubFetch({
+      "E0608/2026-11-01/1": { results: [], totalPages: 2 },
+      "E0608/2026-11-01/2": { results: [entry("2026-11-01T19:45:00")] },
+      "E0608/2026-11-07/1": { results: [entry("2026-11-07T18:00:00")] },
+      "E0581/2026-11-02/1": { results: [entry("2026-11-02T20:00:00")] },
+    })
 
-    const movie = await fetchMovieDetails("the-invite", "")
+    const movies = await fetchMovies()
 
-    expect(movie?.showtimes).toMatchObject([
-      {
-        date: "2026-10-31",
-        time: "19:45",
-        cinema: { name: "Mooby Balmes", slug: "mooby-balmes" },
-        bookingUrl: "https://englishcinemabarcelona.com/r/mooby-balmes/the-invite/941136",
-        showtimeId: "941136",
-      },
-      { date: "2027-01-05", time: "21:30" },
+    expect(fetchMock).toHaveBeenCalledWith("/source/_/showtimes/theater-E0608/d-2026-11-01/p-2/")
+    expect(movies).toHaveLength(1)
+    expect(movies[0].showtimes).toMatchObject([
+      { date: "2026-11-01", time: "19:45", cinema: { id: "E0608", name: "Cines Verdi Barcelona" } },
+      { date: "2026-11-02", time: "20:00", cinema: { id: "E0581", name: "Renoir Floridablanca" } },
+      { date: "2026-11-07", time: "18:00", cinema: { id: "E0608" } },
     ])
   })
 
-  it("keeps the source site's poster over OMDB's", () => {
-    const movie = { posterUrl: "https://source/poster.jpg", ratings: {} } as Movie
+  it("links to the cinema's own ticketing page, falling back to Sensacine", async () => {
+    stubFetch({
+      "E0808/2026-11-01/1": {
+        results: [
+          {
+            movie: AMOR,
+            showtimes: {
+              original: [
+                showtime("2026-11-01T16:00:00", [
+                  { provider: "relay", url: "https://relay/ticket" },
+                  { provider: "default", url: "https://cinema/?p=tickets&perfCode=1&language=%s&theatre=%s" },
+                ]),
+                showtime("2026-11-01T18:00:00", [{ provider: "relay", url: "https://relay/ticket" }]),
+                showtime("2026-11-01T20:00:00"),
+              ],
+            },
+          },
+        ],
+      },
+    })
 
-    const merged = mergeOmdbData(movie, { posterUrl: "https://omdb/poster.jpg" })
+    const [movie] = await fetchMovies()
+
+    expect(movie.showtimes.map(s => s.bookingUrl)).toEqual([
+      "https://cinema/?p=tickets&perfCode=1",
+      "https://relay/ticket",
+      "https://www.sensacine.com/cines/cine/E0808/",
+    ])
+  })
+
+  it("skips entries with no film and cinemas that fail", async () => {
+    const pages = vi.fn(async (url: string) => {
+      if (url.includes("E0608")) return new Response("", { status: 404 })
+      if (url.includes("E0581/d-2026-11-01"))
+        return Response.json({
+          results: [
+            { movie: null, showtimes: { original: [showtime("2026-11-01T12:00:00")] } },
+            { movie: AMOR, showtimes: { original: [showtime("2026-11-01T19:45:00")] } },
+          ],
+        })
+      return Response.json({ results: [] })
+    })
+    vi.stubGlobal("fetch", pages)
+
+    const movies = await fetchMovies()
+
+    expect(movies.map(movie => movie.title)).toEqual(["Ganeunghan Salang"])
+  })
+
+  it("reports an error when every request fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("", { status: 403 })),
+    )
+
+    await expect(fetchMovies()).rejects.toThrow("403")
+  })
+
+  it("keeps the source's poster and language over OMDB's", () => {
+    const movie = { posterUrl: "https://source/poster.jpg", language: "Korean", ratings: {} } as Movie
+
+    const merged = mergeOmdbData(movie, { posterUrl: "https://omdb/poster.jpg", language: "English" })
 
     expect(merged.posterUrl).toBe("https://source/poster.jpg")
+    expect(merged.language).toBe("Korean")
   })
 })

@@ -205,12 +205,12 @@ export default function App() {
         <p>
           Data from{" "}
           <a
-            href="https://englishcinemabarcelona.com"
+            href="https://www.sensacine.com"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground underline"
           >
-            English Cinema Barcelona
+            Sensacine
           </a>
         </p>
       </footer>

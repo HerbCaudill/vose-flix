@@ -1,12 +1,10 @@
 import { useState, useEffect, useCallback } from "react"
-import type { Movie, MovieListItem } from "@/types"
-import { fetchMovieList } from "@/lib/fetchMovieList"
-import { fetchMovieDetails } from "@/lib/fetchMovieDetails"
+import type { Movie } from "@/types"
+import { fetchMovies } from "@/lib/fetchMovies"
 import { fetchOmdbData, type OmdbData } from "@/lib/fetchOmdbData"
 import { fetchTmdbTrailer } from "@/lib/fetchTmdbTrailer"
 import { getCachedMovies, setCachedMovies, clearMoviesCache } from "@/lib/moviesCache"
 import { clearOmdbCache } from "@/lib/omdbCache"
-import { clearHtmlCache } from "@/lib/htmlCache"
 import { sortMovies } from "@/lib/sortMovies"
 
 const BATCH_SIZE = 3
@@ -25,14 +23,12 @@ export function mergeOmdbData(movie: Movie, omdb: OmdbData): Movie {
     ...movie,
     ...omdb,
     posterUrl: movie.posterUrl || omdb.posterUrl || "",
+    language: movie.language || omdb.language,
     imdbId: omdb.imdb?.id,
   }
 }
 
-async function enrichMovieDetails(item: MovieListItem): Promise<Movie | null> {
-  const movie = await fetchMovieDetails(item.slug, item.posterUrl)
-  if (!movie) return null
-
+async function enrichMovieDetails(movie: Movie): Promise<Movie> {
   // Fetch trailer from TMDB
   movie.trailerKey = (await fetchTmdbTrailer(movie.title, movie.year)) || undefined
 
@@ -66,7 +62,7 @@ export function useMovies(): UseMoviesResult {
         return
       }
 
-      const movieList = await fetchMovieList()
+      const movieList = await fetchMovies()
 
       const detailedMovies: Movie[] = []
 
@@ -75,9 +71,7 @@ export function useMovies(): UseMoviesResult {
         const batch = movieList.slice(i, i + BATCH_SIZE)
         const results = await Promise.all(batch.map(enrichMovieDetails))
 
-        for (const movie of results) {
-          if (movie) detailedMovies.push(movie)
-        }
+        detailedMovies.push(...results)
 
         // Update progressively so user sees results faster
         setMovies(sortMovies(detailedMovies))
@@ -94,7 +88,6 @@ export function useMovies(): UseMoviesResult {
   const refresh = useCallback(() => {
     clearMoviesCache()
     clearOmdbCache()
-    clearHtmlCache()
     loadMovies()
   }, [loadMovies])
 
