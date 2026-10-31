@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { fetchMovieDetails } from "./fetchMovieDetails"
 import { fetchMovieList } from "./fetchMovieList"
+import { mergeOmdbData } from "@/hooks/useMovies"
+import type { Movie } from "@/types"
 
 const FILMS_PAGE = `
   <a class="film-card" data-title="The Invite" href="/m/the-invite/in-english-in-barcelona">
@@ -110,5 +112,13 @@ describe("loading movies from the source site", () => {
       },
       { date: "2027-01-05", time: "21:30" },
     ])
+  })
+
+  it("keeps the source site's poster over OMDB's", () => {
+    const movie = { posterUrl: "https://source/poster.jpg", ratings: {} } as Movie
+
+    const merged = mergeOmdbData(movie, { posterUrl: "https://omdb/poster.jpg" })
+
+    expect(merged.posterUrl).toBe("https://source/poster.jpg")
   })
 })

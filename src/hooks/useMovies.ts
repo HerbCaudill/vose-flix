@@ -11,7 +11,7 @@ import { sortMovies } from "@/lib/sortMovies"
 
 const BATCH_SIZE = 3
 
-function mergeOmdbData(movie: Movie, omdb: OmdbData): Movie {
+export function mergeOmdbData(movie: Movie, omdb: OmdbData): Movie {
   // Ratings (use OMDB as fallback if not scraped from website)
   if (omdb.imdb) movie.ratings.imdb = omdb.imdb
   if (omdb.rottenTomatoes && !movie.ratings.rottenTomatoes) {
@@ -24,6 +24,7 @@ function mergeOmdbData(movie: Movie, omdb: OmdbData): Movie {
   return {
     ...movie,
     ...omdb,
+    posterUrl: movie.posterUrl || omdb.posterUrl || "",
     imdbId: omdb.imdb?.id,
   }
 }
